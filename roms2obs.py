@@ -17,7 +17,12 @@ from netCDF4 import Dataset
 from .OBSstruct import OBSstruct
 from scipy.interpolate import griddata
 import numpy as np
-from gwibber.microblog.util import first
+from extract_modval import extract_modval
+from multiprocessing import Pool
+from datetime import datetime, timedelta
+
+def multi_run_wrapper(args):
+    return extract_modval(*args)
 
 def roms2obs(S, romsfile):
     # A dictionary relating OBS.type with romsfile variable names
@@ -36,6 +41,7 @@ def roms2obs(S, romsfile):
     # If more than one day (24h) from obstime to model time, set Tgrid to None
     
     Tgrid = np.empty(len(OBS.survey_time))
+    Terror = np.empty(len(OBS.survey_time))
     for n in range(0,len(OBS.survey_time)):
         dt = OBS.survey_time[n] - time
         if min(np.abs(dt)) >= 1:
@@ -55,8 +61,8 @@ def roms2obs(S, romsfile):
                     second = first -1
                 elif np.abs(dt[first-1]) > np.abs(dt[first+1]):
                     second = first + 1
-                Tgrid[n]=min(first,second)+np.abs(OBS.survey_time[n]-np.abs(time)[min(first,second)])/np.abs(time[first]-time[second])
-                    
+                Tgrid[n] = min(first,second)+np.abs(OBS.survey_time[n]-np.abs(time)[min(first,second)])/np.abs(time[first]-time[second])
+                Terror[n] = np.min(np.abs(dt))
                     
  
     MOD = OBSstruct(OBS); MOD.toarray()
@@ -64,74 +70,28 @@ def roms2obs(S, romsfile):
     for n in np.where(np.isnan(Tgrid))[0]:
         MOD.value[np.where(OBS.time==OBS.survey_time[n])] = np.nan
     
+    arguments=[]; indices=[]
     
-    # Now process all observations for which a finite value of Tgrid was found
-    for n in np.where(np.isfinite(Tgrid))[0]:
+    for n in np.where(np.isfinite(Tgrid))[0]: 
         S = OBS[np.where(OBS.time ==  OBS.survey_time[n])]
-        if (np.floor(Tgrid[n]) == np.ceil(Tgrid[n])):
-            tind = [Tgrid[n].astype(int)]
-        else:
-            tind = [np.floor(Tgrid[n]).astype(int), np.ceil(Tgrid[n]).astype(int)]
-            
+        index=np.where(OBS.time ==  OBS.survey_time[n])[0]
         for o in range(0,S.Ndatum):
-            
-            if (np.floor(S.Xgrid[o]) == np.ceil(S.Xgrid[o])):
-                xind = [S.Xgrid[o].astype(int)]
-            else:
-                xind = [np.floor(S.Xgrid[o]).astype(int), np.ceil(S.Xgrid[o]).astype(int)]
-                
-            if (np.floor(S.Ygrid[o]) == np.ceil(S.Ygrid[o])):
-                yind = [S.Ygrid[o].astype(int)]
-            else:
-                yind = [np.floor(S.Ygrid[o]).astype(int), np.ceil(S.Ygrid[o]).astype(int)]
-                
-                
-            
-            # retrive model result at given indices
-            if S.type[o] in [1,2,3]:
-                
-                var=Dataset(romsfile).variables[varnames[S.type[o]]][tind,yind,xind]
-                
-                # set up grids for griddata interpolation
-                t = np.zeros_like(var)
-                y = np.zeros_like(var)
-                x = np.zeros_like(var)
-
-                for a in range(0,len(tind)):
-                        for c in range(0,len(yind)):
-                            for d in range(0,len(xind)):
-                                t[a,c,d] = tind[a]
-                                y[a,c,d] = yind[c]
-                                x[a,c,d] = xind[d]
-                                
-                MOD.value[o] = griddata((t.flatten(),y.flatten(),x.flatten()),var.flatten(), (Tgrid[22],S.Ygrid[o],S.Xgrid[o]))
-                  
-            elif S.type[o] in [4,5,6]:
-                 
-                if (np.floor(S.Zgrid[o]) == np.ceil(S.Zgrid[o])):
-                    zind = [S.Zgrid[o].astype(int)]
-                else:
-                    zind = [np.floor(S.Zgrid[o]).astype(int), np.ceil(S.Zgrid[o]).astype(int)]
-                
-                var=Dataset(romsfile).variables[varnames[S.type[o]]][tind,zind,yind,xind]
-                
-                t = np.zeros_like(var)
-                z = np.zeros_like(var)
-                y = np.zeros_like(var)
-                x = np.zeros_like(var)
-
-                for a in range(0,len(tind)):
-                    for b in range(0,len(zind)):
-                        for c in range(0,len(yind)):
-                            for d in range(0,len(xind)):
-                                t[a,b,c,d] = tind[a]
-                                z[a,b,c,d] = zind[b]
-                                y[a,b,c,d] = yind[c]
-                                x[a,b,c,d] = xind[d]
-                                
-                MOD.value[o] = griddata((t.flatten(),z.flatten(),y.flatten(),x.flatten()),var.flatten(), (Tgrid[22],S.Zgrid[o],S.Ygrid[o],S.Xgrid[o]))
-                                
-
-  
+            arguments.append([romsfile, Tgrid[n],S.Zgrid[o],S.Ygrid[o],S.Xgrid[o],S.type[o]])
+            indices.append([index[o],Terror[n]])
+    print arguments[0][1]
+    pool=Pool()
     
-            
+ 
+    allresults = pool.map(multi_run_wrapper, arguments)
+    
+    print 'Length of results from multi_run_wrapper: ', len(allresults),  len(indices)
+    print 'Number of observations on OBS object: ', OBS.Ndatum
+    T=OBS[np.where(np.isnan(MOD.value))]
+    print 'Number of observations to far away in time to do calculations: ', T.Ndatum
+    # Try to put results in MOD:
+    for n in range (0,len(allresults)): 
+        MOD.value[indices[n][0].astype(int)] = allresults[n]
+        MOD.error[indices[n][0].astype(int)] = indices[n][1]
+    return MOD
+    
+    

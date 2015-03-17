@@ -82,32 +82,32 @@ class OBSstruct(object):
             elif isinstance(input,OBSstruct):
                 # Create an empty OBSstruct
                 #first the dimension
-                self.Nsurvey = input.Nsurvey
-                self.Nstate  = input.Nstate
-                self.Ndatum  = input.Ndatum
+                self.Nsurvey = np.int(input.Nsurvey)
+                self.Nstate  = np.int(input.Nstate)
+                self.Ndatum  = np.int(input.Ndatum)
   
                 # some information on the data set
                 self.spherical   = input.spherical
-                self.Nobs        = input.Nobs
-                self.survey_time = input.survey_time
-                self.variance    = input.variance
+                self.Nobs        = np.array(input.Nobs)
+                self.survey_time = np.array(input.survey_time)
+                self.variance    = np.array(input.variance)
                 
                 # The observations themselves
-                self.type        = input.type
+                self.type        = np.array(input.type)
                 if hasattr(input,'provenance'):
-                    self.provenance  = input.provenance
-                self.time        = input.time
+                    self.provenance  = np.array(input.provenance)
+                self.time        = np.array(input.time)
                 if (hasattr(input,'lon') and hasattr(input,'lat')):
-                    self.lon         = input.lon
-                    self.lat         = input.lat
-                self.depth       = input.depth
-                self.Xgrid       = input.Xgrid
-                self.Ygrid       = input.Ygrid
-                self.Zgrid       = input.Zgrid
-                self.error       = input.error
-                self.value       = input.value
+                    self.lon         = np.array(input.lon)
+                    self.lat         = np.array(input.lat)
+                self.depth       = np.array(input.depth)
+                self.Xgrid       = np.array(input.Xgrid)
+                self.Ygrid       = np.array(input.Ygrid)
+                self.Zgrid       = np.array(input.Zgrid)
+                self.error       = np.array(input.error)
+                self.value       = np.array(input.value)
                 if hasattr(input,'meta'):
-                    self.meta        = input.meta
+                    self.meta        = np.array(input.meta)
 
                 # The global attributes, stored in a dictionary
                 self.globalatts=input.globalatts
