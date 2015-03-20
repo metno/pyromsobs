@@ -50,6 +50,7 @@ def roms2obs(S, romsfile):
             except:
                 print 'Not able to find time variable, exiting'
                 exit()
+    
 
     # First calculate fractional time Index. Do this for every survey time
     # If more than one day (24h) from obstime to model time, set Tgrid to None
@@ -95,8 +96,6 @@ def roms2obs(S, romsfile):
             arguments.append([romsfile, Tgrid[n],S.Zgrid[o],S.Ygrid[o],S.Xgrid[o],S.type[o]])
             indices.append([index[o],Terror[n]])
     pool=Pool()
-    
- 
     allresults = pool.map(multi_run_wrapper, arguments)
     #allresults = map(multi_run_wrapper,arguments)
     
@@ -109,5 +108,4 @@ def roms2obs(S, romsfile):
         MOD.value[indices[n][0].astype(int)] = allresults[n]
         MOD.error[indices[n][0].astype(int)] = indices[n][1]
     return MOD
-    
     
