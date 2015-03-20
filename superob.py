@@ -26,11 +26,6 @@ def superob(S,hisfile):
     Lm=grid.i1
     Mm=grid.j1
     N=grid.N
-    '''
-    Lm=OBS.grid_Lm_Mm_N[0]
-    Mm=OBS.grid_Lm_Mm_N[1]
-    N=OBS.grid_Lm_Mm_N[2]
-    '''
     # Find observations associated with the same state variable
     state_vars=np.unique(OBS.type)    
     Nstate=len(np.unique(OBS.type))
@@ -53,29 +48,6 @@ def superob(S,hisfile):
         ind_t = np.where(OBS.time == OBS.survey_time[m])[0]
         for names in field_list:
            T.__dict__[names]=OBS.__dict__[names][ind_t]
-        '''
-        T.type=OBS.type[ind_t]
-        T.time=OBS.time[ind_t]
-        T.Xgrid=OBS.Xgrid[ind_t]
-        T.Ygrid=OBS.Ygrid[ind_t]
-        T.Zgrid=OBS.Zgrid[ind_t]
-        T.depth=OBS.depth[ind_t]
-        T.value=OBS.value[ind_t]
-        T.error=OBS.error[ind_t]
-        if (hasattr(OBS,'meta')): 
-           T.meta=OBS.meta[ind_t]
-        else:
-           T.meta=np.zeros_like(T.value)
-
-        if OBS.lat is not None:
-           T.lat=OBS.lat[ind_t]
-    
-        if OBS.lon is not None:
-           T.lon=OBS.lon[ind_t]
-    
-        if OBS.provenance is not None:
-           T.provenance=OBS.provenance[ind_t]
-        '''
         t_std=np.zeros_like(ind_t)
         std=OBS.error[ind_t]
       
@@ -87,26 +59,6 @@ def superob(S,hisfile):
             V=OBSstruct()
             for names in field_list:
                 V.__dict__[names]=T.__dict__[names][ind_v]
-            '''
-            V.type=T.type[ind_v]
-            V.time=T.time[ind_v]
-            V.Xgrid=T.Xgrid[ind_v]
-            V.Ygrid=T.Ygrid[ind_v]
-            V.Zgrid=T.Zgrid[ind_v]
-            V.depth=T.depth[ind_v]
-            V.value=T.value[ind_v]
-            V.error=T.error[ind_v]
-            V.meta=T.meta[ind_v]
-   
-            if OBS.lat is not None:
-               V.lat=T.lat[ind_v]
-    
-            if OBS.lon is not None:
-               V.lon=T.lon[ind_v]
-    
-            if OBS.provenance is not None:
-               V.provenance=T.provenance[ind_v]
-            '''
             v_std=np.zeros_like(ind_v)
             vstd=T.error[ind_v]       
  
@@ -164,45 +116,6 @@ def superob(S,hisfile):
                 Sout.__dict__[names].extend(binned[:])
                 if names =='value':
                     Vmean=binned
-            '''   
-            binned=np.bincount(varInd.astype(int),V.Xgrid)
-            binned=binned[isdata]/count[isdata]
-            Sout.Xgrid.extend(binned[:])
-            binned=np.bincount(varInd.astype(int),V.Ygrid)
-            binned=binned[isdata]/count[isdata]
-            Sout.Ygrid.extend(binned[:])
-            binned=np.bincount(varInd.astype(int),V.Zgrid)
-            binned=binned[isdata]/count[isdata]
-            Sout.Zgrid.extend(binned[:])
-            binned=np.bincount(varInd.astype(int),V.depth)
-            binned=binned[isdata]/count[isdata]
-            Sout.depth.extend(binned[:])
-            binned=np.bincount(varInd.astype(int),V.error)
-            binned=binned[isdata]/count[isdata]
-            Sout.error.extend(binned[:])
-            binned=np.bincount(varInd.astype(int),V.value)
-            binned=binned[isdata]/count[isdata]
-            Sout.value.extend(binned[:])
-            Vmean=binned
-            binned=np.bincount(varInd.astype(int),V.meta)
-            binned=binned[isdata]/count[isdata]
-            Sout.meta.extend(binned[:])
-
-            if OBS.lat is not None:
-               binned=np.bincount(varInd.astype(int),V.lat)
-               binned=binned[isdata]/count[isdata]
-               Sout.lat.extend(binned[:])
-
-            if OBS.lon is not None:
-               binned=np.bincount(varInd.astype(int),V.lon)
-               binned=binned[isdata]/count[isdata]
-               Sout.lon.extend(binned[:])
-
-            if OBS.provenance is not None:
-               binned=np.bincount(varInd.astype(int),V.provenance)
-               binned=binned[isdata]/count[isdata]
-               Sout.provenance.extend(binned[:])
-            '''
             binned = np.bincount(varInd.astype(int),V.value**2)
             binned=binned[isdata]/count[isdata] - Vmean**2
             #Sout.std.extend(np.sqrt(binned))
@@ -211,9 +124,11 @@ def superob(S,hisfile):
             Sout.time.extend(np.ones([Nsuper])*OBS.survey_time[m])
             Sout.Nobs[m] =  Sout.Nobs[m]+Nsuper
  
-            if OBS.provenance is not None:
-               Sout.provenance = np.floor(Sout.provenance).tolist()
+            if hasattr(OBS,'provenance'):
+               if len(OBS.provenance):
+                    Sout.provenance = np.floor(Sout.provenance).tolist()
 
     Sout=setDimensions(Sout)
+    Sout.toarray()
     return Sout
 

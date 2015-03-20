@@ -24,7 +24,7 @@ def merge(files):
        fid = Dataset(files[0])
        S = OBSstruct(fid)
     else:
-       S=files[0]
+       S=OBSstruct(files[0])
     field_list=S.getfieldlist()
     S.toarray() 
     if (hasattr(S,'lon') and hasattr(S,'lat')):
@@ -46,7 +46,7 @@ def merge(files):
            fid = Dataset(files[m])
            N = OBSstruct(fid)
         else:
-           N=files[m]
+           N=OBSstruct(files[m])
         N.tolist()
         for names in field_list:
             S.__dict__[names].extend(N.__dict__[names])
