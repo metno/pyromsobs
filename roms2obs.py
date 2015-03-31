@@ -90,13 +90,12 @@ def roms2obs(S, romsfile):
     arguments=[]; indices=[]
     
     for n in np.where(np.isfinite(Tgrid))[0]: 
-        S = OBS[np.where(OBS.time ==  OBS.survey_time[n])]
+        O = OBS[np.where(OBS.time ==  OBS.survey_time[n])]
         index=np.where(OBS.time ==  OBS.survey_time[n])[0]
-        for o in range(0,S.Ndatum):
-            arguments.append([romsfile, Tgrid[n],S.Zgrid[o],S.Ygrid[o],S.Xgrid[o],S.type[o]])
+        for o in range(0,O.Ndatum):
+            arguments.append([romsfile, Tgrid[n],O.Zgrid[o],O.Ygrid[o],O.Xgrid[o],O.type[o]])
             indices.append([index[o],Terror[n]])
     pool=Pool()
-    allresults = pool.map(multi_run_wrapper, arguments)
     #allresults = map(multi_run_wrapper,arguments)
     
     print 'Length of results from multi_run_wrapper: ', len(allresults),  len(indices)

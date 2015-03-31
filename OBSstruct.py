@@ -212,7 +212,7 @@ class OBSstruct(object):
 
     
         
-    def writeOBS(self, output, reftime=None, timeunits=None,glbattfile='None'):
+    def writeOBS(self, output, reftime=None, timeunits=None,glbattfile=None):
         ''' write OBSstruct to netcdf file
             default time units is days, default time reference is 1970-01-01 00:00:00
             A text file containing the desired global attributes may be provided
