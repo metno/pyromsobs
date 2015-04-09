@@ -1,7 +1,6 @@
 import numpy as np
 
 
-
 def setDimensions(OBS):
     '''
     Takes an observation structure, calculate unique survey_times
@@ -29,7 +28,26 @@ def accum_np(accmap, a, func=np.sum):
         vals[i] = func(a[indices[i]:indices[i+1]])
     return vals
 
-
+def sort_ascending(OBS):
+    '''
+    Takes an observation structure and sorts the observations 
+    according to ascending time'
+    '''
+    field_list=OBS.getfieldlist()
+    OBS.tolist()
+    # order according to ascending obs_time
+        
+    tmplist = zip(*[getattr(OBS,names) for names in field_list])
+    tmplist.sort()
+    tmplist = zip(*tmplist)
+    
+    for n in range(0,len(field_list)): 
+        if (len(OBS.__dict__[names])):
+            setattr(OBS,field_list[n],tmplist[n])
+    OBS.toarray()
+    OBS=setDimensions(OBS)
+    
+    return OBS
 def popEntries(popindex, OBS):
     field_list=OBS.getfieldlist()
     '''
@@ -51,9 +69,11 @@ def popEntries(popindex, OBS):
        indices=sorted(popindex.tolist(),reverse=True)
        for index in indices:
            for names in field_list:
-                del OBS.__dict__[names][index]
+                if (len(OBS.__dict__[names])):
+                    del OBS.__dict__[names][index]
     elif (popindex.size<2) & (popindex.size>0): 
        index=popindex
        for names in field_list:
-           del OBS.__dict__[names][index]
+           if (len(OBS.__dict__[names])):
+               del OBS.__dict__[names][index]
     return OBS
