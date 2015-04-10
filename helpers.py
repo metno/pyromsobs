@@ -50,18 +50,6 @@ def sort_ascending(OBS):
     return OBS
 def popEntries(popindex, OBS):
     field_list=OBS.getfieldlist()
-    '''
-    field_list = ['time','type','depth','Xgrid','Ygrid','Zgrid','error','value']
-    if (hasattr(OBS,'lon') and hasattr(OBS,'lat')):
-       if ( OBS.lon.size and OBS.lat.size) :
-           field_list.extend(['lon','lat'])
-    if (hasattr(OBS,'provenance')): 
-       if (OBS.provenance.size):
-           field_list.append('provenance')
-    if (hasattr(OBS,'meta')): 
-       if (np.array(OBS.meta).size):
-           field_list.append('meta')
-    '''
     OBS.tolist()   
 
     popindex=np.array(popindex).squeeze()

@@ -21,7 +21,7 @@ def adjust_survey(S,dt):
        OBS = OBSstruct(fid)
     else:
        OBS=OBSstruct(S)
-    
+    print OBS.Ndatum, len(OBS.value)
     # let's assume survey_time/obs_time are given in decimal days.
     # Now define a new set of survey_times, based on the value given for dt
 
@@ -64,13 +64,15 @@ def adjust_survey(S,dt):
 
        # Now get rid of indicies that we assigned values for:
        newind = np.array([i for j, i in enumerate(ind) if j not in popindex]).squeeze()
+       print newind, len(OBS.time)
        # Only continue if there are any observations left to handle:
        if (newind.size != 0):
            # Loop over unique observation times 
+           print np.take(OBS.time,newind)
            probtimes=np.array(np.unique(np.take(OBS.time,newind))).squeeze()
     
            #probtimes=np.array(np.unique(np.array(OBS.time)[newind])).squeeze()
-           for n in range(0,len(probtimes)):
+           for n in range(0,probtimes.size):
                # Locate variables with coinciding observation time
                #tmpind=newind[np.take(OBS.time,newind)==probtimes[n]]
                tmpind=newind[np.array(OBS.time)[newind]==probtimes[n]]
