@@ -21,7 +21,6 @@ def adjust_survey(S,dt):
        OBS = OBSstruct(fid)
     else:
        OBS=OBSstruct(S)
-    print OBS.Ndatum, len(OBS.value)
     # let's assume survey_time/obs_time are given in decimal days.
     # Now define a new set of survey_times, based on the value given for dt
 
@@ -64,18 +63,20 @@ def adjust_survey(S,dt):
 
        # Now get rid of indicies that we assigned values for:
        newind = np.array([i for j, i in enumerate(ind) if j not in popindex]).squeeze()
-       print newind, len(OBS.time)
        # Only continue if there are any observations left to handle:
        if (newind.size != 0):
            # Loop over unique observation times 
-           print np.take(OBS.time,newind)
            probtimes=np.array(np.unique(np.take(OBS.time,newind))).squeeze()
     
            #probtimes=np.array(np.unique(np.array(OBS.time)[newind])).squeeze()
-           for n in range(0,probtimes.size):
+           #for n in range(0,probtimes.size):
+           if probtimes.size == 1:
+               n=probtimes
                # Locate variables with coinciding observation time
                #tmpind=newind[np.take(OBS.time,newind)==probtimes[n]]
-               tmpind=newind[np.array(OBS.time)[newind]==probtimes[n]]
+               #tmpind=newind[np.array(OBS.time)[newind]==probtimes[n]]
+               
+               tmpind=newind[np.array(OBS.time)[newind]== n]
                if (tmpind.size==1):
                   otime[tmpind]=survey_time[np.argmin(trydt[tmpind])]
                else:
@@ -99,6 +100,38 @@ def adjust_survey(S,dt):
                              np.put(otime,typeind[0:np.floor(len(typeind)/2.)],[survey_time[np.argmin(item[1])] for item in enumerate(np.take(trydt,typeind[0:np.floor(len(typeind)/2.)]))])
                              # Second half gets last mintime
                              np.put(otime,typeind[np.floor(len(typeind)/2.):],[survey_time[np.argmin(item[1])+1] for item in enumerate(np.take(trydt,typeind[np.floor(len(typeind)/2.):]))])
+
+           else:    
+               for n in probtimes:
+                   
+                   # Locate variables with coinciding observation time
+                   #tmpind=newind[np.take(OBS.time,newind)==probtimes[n]]
+                   #tmpind=newind[np.array(OBS.time)[newind]==probtimes[n]]
+               
+                   tmpind=newind[np.array(OBS.time)[newind]== n]
+                   if (tmpind.size==1):
+                      otime[tmpind]=survey_time[np.argmin(trydt[tmpind])]
+                   else:
+                      # For each observation type, assign half of values to lower
+                      # survey_time, other half to higher survey_time
+                      # If only one observation of given type, assign it to the lower.
+                      ntypes=np.array(np.unique(np.take(OBS.type,tmpind))).squeeze()
+                      if not (ntypes.size>1): 
+                          # First half gets first mintime
+                          np.put(otime,tmpind[0:np.floor(len(tmpind)/2.)],[survey_time[np.argmin(item[1])] for item in enumerate(np.take(trydt,tmpind[0:np.floor(len(tmpind)/2.)]))])
+                          # Second half gets last mintime
+                          np.put(otime,tmpind[np.floor(len(tmpind)/2.):],[survey_time[np.argmin(item[1])+1] for item in enumerate(np.take(trydt,tmpind[np.floor(len(tmpind)/2.):]))])
+                      else:
+    
+                          for t in range(0,ntypes.size):
+                              typeind=tmpind[np.take(OBS.type,tmpind)==ntypes[t]]
+                              if (typeind.size == 1):
+                                 otime[typeind]=survey_time[np.argmin(trydt[typeind])]
+                              else:
+                                 # First half gets first mintime
+                                 np.put(otime,typeind[0:np.floor(len(typeind)/2.)],[survey_time[np.argmin(item[1])] for item in enumerate(np.take(trydt,typeind[0:np.floor(len(typeind)/2.)]))])
+                                 # Second half gets last mintime
+                                 np.put(otime,typeind[np.floor(len(typeind)/2.):],[survey_time[np.argmin(item[1])+1] for item in enumerate(np.take(trydt,typeind[np.floor(len(typeind)/2.):]))])
 
     # OK, that should have done the job!
     # Now we need to find number of observations within each survey_time, 

@@ -1,6 +1,6 @@
 import numpy as np
 from netCDF4 import Dataset
-from .helpers import popEntries
+from .helpers import popEntries, setDimensions
 from .OBSstruct import OBSstruct
 from scipy.interpolate import griddata
 
@@ -41,4 +41,5 @@ def applyMask(S,romsfile):
             popindex.append(o)
             
     OBS=popEntries(popindex,OBS)
+    OBS=setDimensions(OBS)
     return OBS

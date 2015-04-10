@@ -4,6 +4,7 @@ from netCDF4 import Dataset
 from roppy import SGrid
 from .obs_ijpos import obs_ijpos
 from .helpers import setDimensions, popEntries
+from .applyMask import applyMask
 from .OBSstruct import OBSstruct
 from multiprocessing import Pool
 from datetime import datetime,timedelta
@@ -82,7 +83,7 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
         OBS=popEntries(list(popindex),OBS)
         del popindex
 
-    
+        OBS=applyMask(OBS,hisfile)
         if onlyHorizontal:
             OBS=setDimensions(OBS)
             return OBS
