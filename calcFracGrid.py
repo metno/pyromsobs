@@ -38,6 +38,9 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
 
     if  not onlyVertical:
         print 'calculating horizontal grid fractions'
+        OBS.Xgrid = np.empty_like(OBS.lon)
+        OBS.Ygrid = np.empty_like(OBS.lon)
+        
         lons=np.unique(OBS.lon)
         sendlon=[]
         sendlat=[]
