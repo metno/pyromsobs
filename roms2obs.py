@@ -12,7 +12,6 @@ On output
 MOD - a OBSstruct object similar to OBS, but with model values in MOD.values 
 
 '''
-
 from netCDF4 import Dataset
 from .OBSstruct import OBSstruct
 from scipy.interpolate import griddata
@@ -33,24 +32,24 @@ def roms2obs(S, romsfile):
        OBS = OBSstruct(fid)
     else:
        OBS = OBSstruct(S)
-    OBS.toarray()
+    fid = Dataset(romsfile)
     try:    
-        time = Dataset(romsfile).variables['ocean_time'][:]/86400.
+        time = fid.variables['ocean_time'][:]/86400.
     except:
         try:
-            time = Dataset(romsfile).variables['time'][:]/86400.
+            time = fid.variables['time'][:]/86400.
         except:
             try:
-                time = Dataset(romsfile).variables['clim_time']
+                time = fid.variables['clim_time']
                 if "seconds" in time.units:
-                    time = Dataset(romsfile).variables['clim_time'][:]/86400.
+                    time = fid.variables['clim_time'][:]/86400.
                 else:
                     # Assume days:
-                    time = Dataset(romsfile).variables['clim_time'][:]
+                    time = fid.variables['clim_time'][:]
             except:
                 print 'Not able to find time variable, exiting'
                 exit()
-    
+    fid.close()
 
     # First calculate fractional time Index. Do this for every survey time
     # If more than one day (24h) from obstime to model time, set Tgrid to None
@@ -95,8 +94,8 @@ def roms2obs(S, romsfile):
         for o in range(0,O.Ndatum):
             arguments.append([romsfile, Tgrid[n],O.Zgrid[o],O.Ygrid[o],O.Xgrid[o],O.type[o]])
             indices.append([index[o],Terror[n]])
-    pool=Pool()
-    #allresults = map(multi_run_wrapper,arguments)
+    pool=Pool(6)
+    allresults = pool.map(multi_run_wrapper,arguments)
     
     print 'Length of results from multi_run_wrapper: ', len(allresults),  len(indices)
     print 'Number of observations on OBS object: ', OBS.Ndatum

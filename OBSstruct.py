@@ -83,6 +83,7 @@ class OBSstruct(object):
                         exec('self.globalatts["%s"] = """%s"""' % (name, getattr(ifile,name)))
                 except:
                     print "No global attributes on file"
+                ifile.close()
                     
             elif isinstance(ifile,OBSstruct):
                 # Create an empty OBSstruct
@@ -231,14 +232,15 @@ class OBSstruct(object):
         if glbattfile:
         
             rem='";,\n'
-            with open(glbattfile) as f:
-                for line in f:
-                    if '=' in line:
-                        name = line.split('=')[0].strip()
-                        cont = ''.join(x for x in line.split('=')[1].split('\n')[0] if x not in rem).strip()
-                    else:                        
-                        cont = ' '.join([cont,''.join(x for x in line if x not in rem).strip()])
-                    self.globalatts[name] = cont.replace('\\n','\n')
+            f = open(glbattfile) 
+            for line in f:
+                if '=' in line:
+                    name = line.split('=')[0].strip()
+                    cont = ''.join(x for x in line.split('=')[1].split('\n')[0] if x not in rem).strip()
+                else:                        
+                    cont = ' '.join([cont,''.join(x for x in line if x not in rem).strip()])
+                self.globalatts[name] = cont.replace('\\n','\n')
+            f.close()
         if not reftime:
             reftime='1970-01-01 00:00:00'
         if not timeunits:
@@ -279,7 +281,7 @@ class OBSstruct(object):
             print "No information on grid type (spherical = 0 ,spherical= 1)"
             print "Consider adding this information!"
         
-        if hasattr(self,'variance') and np.isscalar(self.variance):
+        if hasattr(self,'variance') and np.any(self.variance):
             var=oncid.createVariable('obs_variance','f8',('state_variable',))
             var.long_name = 'global temporal and spatial observation variance'
             var[:]=self.variance[:]

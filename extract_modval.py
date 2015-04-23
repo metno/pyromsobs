@@ -5,6 +5,7 @@ from scipy.interpolate import griddata
 def extract_modval(romsfile, Tgrid, Zgrid, Ygrid, Xgrid, otype):
     # remember that Zgrid is one-based, this is not the case for python. 
     # Subtract 1 from Zgrid to get correct layer
+    fid  = Dataset(romsfile)
     Zgrid = Zgrid - 1.
     if Zgrid < 0:
         Zgrid = np.array(0)
@@ -27,7 +28,7 @@ def extract_modval(romsfile, Tgrid, Zgrid, Ygrid, Xgrid, otype):
 
     if otype in [1,2,3]:
     
-        var=Dataset(romsfile).variables[varnames[otype]][tind,yind,xind]
+        var=fid.variables[varnames[otype]][tind,yind,xind]
     
         # set up grids for griddata interpolation
         if len(tind) > 1 :
@@ -74,7 +75,7 @@ def extract_modval(romsfile, Tgrid, Zgrid, Ygrid, Xgrid, otype):
         else:
             zind = [np.floor(Zgrid).astype(int), np.ceil(Zgrid).astype(int)]
         
-        var=Dataset(romsfile).variables[varnames[otype]][tind,zind,yind,xind].squeeze()
+        var=fid.variables[varnames[otype]][tind,zind,yind,xind].squeeze()
 
         if len(tind) > 1 :
             t = np.zeros_like(var)
@@ -152,7 +153,7 @@ def extract_modval(romsfile, Tgrid, Zgrid, Ygrid, Xgrid, otype):
                     second[a,b] = ind2[b]
             return griddata((first.flatten(),second.flatten()),var.flatten(), (grid1,grid2))
         
-        
+        fid.close()
         if len(var.shape) == 1 and var.shape[0] > 1 :
             # Determine which dimensions to use, set pointers to appropriate variables
             if 't' in locals():

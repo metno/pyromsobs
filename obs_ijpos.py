@@ -157,6 +157,7 @@ def obs_ijpos(gridfile,lons,lats,coor):
     else:
         oipos=ipos
         ojpos=jpos
+    gfh.close()
     return oipos,ojpos
 '''
 def pip(x,y,poly):
