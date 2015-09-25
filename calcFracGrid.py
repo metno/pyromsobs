@@ -37,7 +37,6 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
     
 
     if  not onlyVertical:
-        print 'calculating horizontal grid fractions'
         OBS.Xgrid = np.empty_like(OBS.lon)
         OBS.Ygrid = np.empty_like(OBS.lon)
         
@@ -71,21 +70,15 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
             OBS.Xgrid[putind[n]] = x[n]
             OBS.Ygrid[putind[n]] = y[n]
         #OBS.Xgrid,OBS.Ygrid=obs_ijpos(hisfile,OBS.lon,OBS.lat,'r')
-    
-        popindex=np.unique(np.concatenate((np.argwhere(OBS.Xgrid<0),np.argwhere(OBS.Ygrid<0))))
-        OBS=popEntries(list(popindex),OBS)
+        x = None
+        y=None
+        OBS = OBS[np.where( (OBS.Xgrid >= 0) | (OBS.Ygrid >= 0)) ]
+
         # If all observations were outside the model domain, return OBS now
         if not len(OBS.lon):
-            OBS=setDimensions(OBS)
             return OBS
-        del popindex
-
-    
-        OBS.toarray()
-        popindex=np.unique(np.array([np.argwhere(np.isnan(OBS.Xgrid)),np.argwhere(np.isnan(OBS.Ygrid))]).flatten())
-        OBS=popEntries(list(popindex),OBS)
-        del popindex
-
+        OBS = OBS[np.where((np.isfinite(OBS.Xgrid)) | ( np.isfinite(OBS.Ygrid)))]
+        #OBS = setDimensions(OBS)
         OBS=applyMask(OBS,hisfile)
         if onlyHorizontal:
             OBS=setDimensions(OBS)
@@ -96,6 +89,7 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
     fid = Dataset(hisfile)
     grid=SGrid(fid)
     fid.close()
+    fid = None
     # Find weights to calculate depth at position
     # Must handle points that fall on 
     nipos=np.zeros([4,len(OBS.Xgrid)]); njpos=np.zeros([4,len(OBS.Ygrid)])
@@ -141,7 +135,24 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
         results = map(multi_run_wrapper, arguments)
     for n in range(0,len(OBS.depth)):
         OBS.Zgrid[n] = results[n]
-
-	OBS = setDimensions(OBS)
+    results = None
+    mzi = None
+    arguments = None
+    ZatOBS = None
+    Adepth = None
+    weights = None
+    nmask = None
+    nipos = None
+    njpos = None
+    ndist= None
+    grid = None
+    sendlon = None
+    sendlat = None
+    putind = None
+    ind = None
+    index =None
+    lat_at_ind = None
+    
+    OBS = setDimensions(OBS)
     return OBS
 

@@ -400,7 +400,7 @@ class OBSstruct(object):
             if len(self.instrumental_error) == self.Ndatum: 
                 var=oncid.createVariable('instrumental_error','f8',('datum',))
                 var.long_name='observation error covariance from instrument'
-                var[:]=self.instrument_error[:]
+                var[:]=self.instrumental_error[:]
 
         if hasattr(self,'value'): 
             if len(self.value) == self.Ndatum: 

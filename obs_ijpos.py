@@ -9,7 +9,7 @@ def obs_ijpos(gridfile,lons,lats,coor):
     Finds fractional gridpoint locations of observation in a ROMS grid
     """
 
-    gfh= netCDF4.Dataset(gridfile,'r',format='NETCDF3_CLASSIC')
+    gfh= netCDF4.Dataset(gridfile)
     cartesian=0
     if (coor=='r'):
         latr=gfh.variables['lat_rho'][:,:]
