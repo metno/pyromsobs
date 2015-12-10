@@ -171,7 +171,59 @@ class OBSstruct(object):
         if hasattr(self,'variance'):
             S.variance=self.variance
         return S
-    
+    def put(self,time,lon,lat,depth,otype,value, error = None, provenance = None, Xgrid = None, Ygrid = None, Zgrid = None, meta = None, true_time = None, true_depth = None, instrumental_error = None):
+        try:
+           if len(time) > 1:
+               print 'ERROR message: self.put method is intended for single observation only'
+               return
+        except:
+           self.tolist()
+           self.time.append(time)
+           self.lon.append(lon)
+           self.lat.append(lat)
+           self.depth.append(depth)
+           self.type.append(otype)
+           self.value.append(value)
+           if error:
+              self.error.append(error)
+           else:
+              self.error.append(-99999)
+           if provenance:
+              self.provenance.append(provenance)
+           else:
+              self.provenance.append(-99999)
+
+           if Xgrid:
+              self.Xgrid.append(Xgrid)
+           else:
+              self.Xgrid.append(-99999)
+           if Ygrid:
+              self.Ygrid.append(Ygrid)
+           else:
+              self.Ygrid.append(-99999)
+           if Zgrid:
+              self.Zgrid.append(Zgrid)
+           else:
+              self.Zgrid.append(-99999)
+           if meta:
+              self.meta.append(meta)
+           else:
+              self.meta.append(-99999)
+           if true_time:
+              self.true_time.append(true_time)
+           else:
+              self.true_time.append(-99999)
+           if true_depth:
+              self.true_depth.append(true_depth)
+           else:
+              self.true_depth.append(-99999)
+           if instrumental_error:
+              self.instrumental_error.append(instrumental_error)
+           else:
+              self.instrumental_error.append(-99999)
+           self.toarray()
+           self = setDimensions(self)
+
     def append(self,S):
         field_list = self.getfieldlist()
         
