@@ -88,8 +88,8 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
     OBS.Zgrid=np.ones_like(OBS.depth)
     fid = Dataset(hisfile)
     grid=SGrid(fid)
-    fid.close()
-    fid = None
+    #fid.close()
+    #fid = None
     # Find weights to calculate depth at position
     # Must handle points that fall on 
     nipos=np.zeros([4,len(OBS.Xgrid)]); njpos=np.zeros([4,len(OBS.Ygrid)])
@@ -152,7 +152,7 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
     ind = None
     index =None
     lat_at_ind = None
-    
+    fid.close()
     OBS = setDimensions(OBS)
     return OBS
 

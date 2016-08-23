@@ -27,9 +27,13 @@ def extract_modval(romsfile, Tgrid, Zgrid, Ygrid, Xgrid, otype):
         yind = [np.floor(Ygrid).astype(int), np.ceil(Ygrid).astype(int)]
 
     if otype in [1,2,3]:
-    
-        var=fid.variables[varnames[otype]][tind,yind,xind]
-    
+            
+        var=fid.variables[varnames[otype]][tind,yind,xind].squeeze()
+        if np.ma.is_masked(var):
+            nans = var.mask
+        else: 
+            nans = np.isnan(var)
+        notnans = np.logical_not(nans)
         # set up grids for griddata interpolation
         if len(tind) > 1 :
             t = np.zeros_like(var)
@@ -46,7 +50,7 @@ def extract_modval(romsfile, Tgrid, Zgrid, Ygrid, Xgrid, otype):
                         y[a,c,d] = yind[c]
                         x[a,c,d] = xind[d]
                     
-                        return griddata((t.flatten(),y.flatten(),x.flatten()),var.flatten(), (Tgrid,Ygrid,Xgrid))
+            return griddata((t.flatten(),y.flatten(),x.flatten()),var.flatten(), (Tgrid,Ygrid,Xgrid))
         
         if len(var.shape) == 2:
             # Determine which dimensions to use, set pointers to appropriate variables
@@ -65,7 +69,12 @@ def extract_modval(romsfile, Tgrid, Zgrid, Ygrid, Xgrid, otype):
                 for b in range(0,len(ind2)):
                     first[a,b] = ind1[a]
                     second[a,b] = ind2[b]
+            var[nans] = griddata((first[notnans],second[notnans]),var[notnans], (first[nans],second[nans]), method='nearest').ravel()
             return griddata((first.flatten(),second.flatten()),var.flatten(), (grid1,grid2))
+        elif len(var.shape) == 1 and var.shape[0] == 1 :
+            return var
+        elif len(var.shape) == 0:
+            return var
         
       
     elif otype in [4,5,6,7]:

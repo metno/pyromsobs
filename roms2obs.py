@@ -72,7 +72,7 @@ def roms2obs(S, romsfile):
                 if first == 0:
                     second = first + 1
                 elif first == (len(time)-1):
-                    second == first - 1
+                    second = first - 1
                 elif np.abs(dt[first-1]) < np.abs(dt[first+1]):
                     second = first -1
                 elif np.abs(dt[first-1]) > np.abs(dt[first+1]):
@@ -94,9 +94,8 @@ def roms2obs(S, romsfile):
         for o in range(0,O.Ndatum):
             arguments.append([romsfile, Tgrid[n],O.Zgrid[o],O.Ygrid[o],O.Xgrid[o],O.type[o]])
             indices.append([index[o],Terror[n]])
-    pool=Pool(6)
-    allresults = pool.map(multi_run_wrapper,arguments)
-    
+    #pool=Pool(6)
+    allresults = map(multi_run_wrapper,arguments)
     print 'Length of results from multi_run_wrapper: ', len(allresults),  len(indices)
     print 'Number of observations on OBS object: ', OBS.Ndatum
     T=OBS[np.where(np.isnan(MOD.value))]

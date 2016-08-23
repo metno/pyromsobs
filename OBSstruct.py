@@ -298,7 +298,7 @@ class OBSstruct(object):
         if not timeunits:
             timeunits='days'
         # Create file:
-        oncid = Dataset(output,'w',format='NETCDF3_CLASSIC')
+        oncid = Dataset(output,'w',format='NETCDF4')
         
         # Add the global attributes if any:
         oncid.setncatts(self.globalatts)
