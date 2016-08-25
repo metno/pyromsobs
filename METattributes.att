@@ -48,3 +48,8 @@ obs_provenance = "\n",
 				 " 14: InSitu salinity from the Hadley Centre";
 
 variance_units = "squared state variable units" ;
+
+flag_values = 2, 3, 4, 5, 6, 7, 8, 9, 10, 111, 121, 112, 122, 113, 123, 114, 124, 115, 125, 116, 126, 117, 127, 118, 128, 119, 129, 1110, 1210, 1111, 1211, 1112, 1212, 1113, 1213, 13, 14, 15, 16 ;
+
+flag_meanings = "CODARu CODARv CTD_imr_temp CTD_imr_salt TSG_imr_temp TSG_imr_salt OSISAF_sst_metop02 OSISAF_sst_noaa18 OSISAF_sst_noaa19 MyO_bathy_temp MyO_bathy_salt MyO_bottle_temp MyO_bottle_salt MyO_CTD_temp MyO_CTD_salt MyO_drift_temp MyO_drift_salt MyO_ferry_temp MyO_ferry_salt MyO_glider_temp MyO_glider_salt MyO_moor_temp MyO_moor_salt MyO_mini_temp MyO_mini_salt MyO_profile_temp MyO_profile_salt MyO_TESAC_temp MyO_TESAC_salt MyO_TSG_temp MyO_TSG_salt MyO_X_temp MyO_X_salt MyO_drivcur_temp MyO_drivcur_salt Hadley_temp Hadley_salt TH_temp TH_salt" ;
+

@@ -265,7 +265,7 @@ class OBSstruct(object):
 
     
         
-    def writeOBS(self, output, reftime=None, timeunits=None,glbattfile=None):
+    def writeOBS(self, output, reftime=None, timeunits=None,attfile=None):
         ''' write OBSstruct to netcdf file
             default time units is days, default time reference is 1970-01-01 00:00:00
             A text file containing the desired global attributes may be provided
@@ -281,17 +281,20 @@ class OBSstruct(object):
                   "7: salinity (nondimensional)" ;
         '''
         
-        if glbattfile:
-        
+        if attfile:
+            self.provenance_atts = {}
             rem='";,\n'
-            f = open(glbattfile) 
+            f = open(attfile) 
             for line in f:
                 if '=' in line:
                     name = line.split('=')[0].strip()
                     cont = ''.join(x for x in line.split('=')[1].split('\n')[0] if x not in rem).strip()
                 else:                        
                     cont = ' '.join([cont,''.join(x for x in line if x not in rem).strip()])
-                self.globalatts[name] = cont.replace('\\n','\n')
+                if name=='flag_values' or name=='flag_meanings':
+                   self.provenance_atts[name] = cont
+                else:
+                   self.globalatts[name] = cont.replace('\\n','\n')
             f.close()
         if not reftime:
             reftime='1970-01-01 00:00:00'
@@ -351,7 +354,9 @@ class OBSstruct(object):
         if hasattr(self,'provenance'): 
             if len(self.provenance) == self.Ndatum:
                 var=oncid.createVariable('obs_provenance','i4',('datum',))
-                var.long_name = "observation origin" 
+                var.long_name = "observation origin"
+                var.flag_values = self.provenance_atts['flag_values']
+                var.flag_meanings = self.provenance_atts['flag_meanings']
                 var[:]=self.provenance[:]
             else:
                 print 'dimension of provenance is inconsistent with Ndatum, skipping'
