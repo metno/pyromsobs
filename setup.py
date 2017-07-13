@@ -6,8 +6,7 @@
 # MET Norway
 # 2017-05-05
 # ------------------------------------
-
-from distutils.core import setup
+from setuptools import setup
 
 setup(name         = 'pyromsobs',
       version      = '0.1',
@@ -15,4 +14,7 @@ setup(name         = 'pyromsobs',
       author       = 'Ann Kristin Sperrevik',
       author_email = 'annks@met.no',
       url          = 'https://github.com/metno/pyromsobs',
+      packages     = ['pyromsobs'],
+      install_requires = ['roppy'],
+      dependency_links = ['pip install git+https://github.com/bjornaa/roppy.git']
       )
