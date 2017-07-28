@@ -22,7 +22,7 @@ def fast_merge(files, outputfile):
     None, a new observation file file be created and written
     '''
     Nfiles = len(files)
-    for n in range Nfiles:
+    for n in range(Nfiles):
         try:
             call('ncks -O -x -v Nobs,survey_time --mk_rec_dmn datum '+files[n]+' '+'.tmp_obsfile_'+str(n)+'.nc', shell = True)
         except:

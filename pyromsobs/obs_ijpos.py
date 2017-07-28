@@ -56,31 +56,30 @@ def obs_ijpos(gridfile,lons,lats,coor):
     third=np.fliplr(np.array([(lonr[1:,-1],latr[1:,-1])]).squeeze())
     fourth=np.fliplr(np.array([(lonr[0,1:],latr[0,1:])]).squeeze())
 
-    N=range(0,first.shape[1],10)
+    N=list(range(0,first.shape[1],10))
     N.append(first.shape[1]-1)
     for n in N:
         edge.append(tuple(first[:,n]))
 
-    N=range(0,second.shape[1],10)
+    N=list(range(0,second.shape[1],10))
     N.append(second.shape[1]-1)
 
     for n in N:
         edge.append(tuple(second[:,n]))
 
-    N=range(0,third.shape[1],10)
+    N=list(range(0,third.shape[1],10))
     N.append(third.shape[1]-1)
 
     for n in N:
         edge.append(tuple(third[:,n]))
 
-    N=range(0,fourth.shape[1],10)
+    N=list(range(0,fourth.shape[1],10))
     N.append(fourth.shape[1]-1)
 
     for n in N:
         edge.append(tuple(fourth[:,n]))
 
     poly=edge
-
     if (lats.size>1):
         IN=np.zeros_like(lats)
         for n in range(0,lats.size):
@@ -89,14 +88,33 @@ def obs_ijpos(gridfile,lons,lats,coor):
         lons=lons[ind]; lats=lats[ind]
     else:
         IN=pip(lons,lats,poly)
-
     #if (np.sum(IN>0):
     # read the proj4 string from the netcdf file, it is used in all
     # necessary calculations
 
     try:
-        mapstr=str(gfh.variables['h'].getncattr('mapping'))
-        projstring=(gfh.variables[mapstr]).getncattr('proj4')
+        try:
+            mapstr=str(gfh.variables['h'].getncattr('mapping'))
+        except:
+            try:
+                mapstr=str(gfh.variables['h'].getncattr('grid_mapping'))
+            except:
+                pass
+        try:
+            projstring=(gfh.variables[mapstr]).getncattr('proj4')
+        except:
+            try:
+                projstring=(gfh.variables[mapstr]).getncattr('proj4string')
+            except:
+                pass
+        try:
+            projstring=(gfh.variables['grid_mapping']).getncattr('proj4')
+        except:
+            try:
+                projstring=(gfh.variables['grid_mapping']).getncattr('proj4string')
+            except:
+                pass
+
         gridproj=proj.Proj(str(projstring))
         hasproj=1
     except:
@@ -105,18 +123,17 @@ def obs_ijpos(gridfile,lons,lats,coor):
         # Check if lat, lon spacing is uniform
         dx1=np.abs(lonr[0,1]-lonr[0,0])
         dx2=np.abs(lonr[0,-1]-lonr[0,-2])
-        n=np.round(lonr.shape[1]/2)
+        n=int(np.round(lonr.shape[1]/2))
         dx3=np.abs(lonr[0,n]-lonr[0,n-1])
 
         dy1=np.abs(latr[1,0]-latr[0,0])
         dy2=np.abs(latr[-1,0]-latr[-2,0])
-        n=np.round(latr.shape[0]/2)
+        n=int(np.round(latr.shape[0]/2))
         dy3=np.abs(latr[n,0]-latr[n-1,0])
 
         if ( (dx1 == dx2) & (dx1==dx3) & (dx2==dx3) & (dy1 == dy2) & (dy1==dy3) & (dy2==dy3) ):
             cartesian=1
             gridproj=proj.Proj("+proj=latlong +datum=WGS84")
-
 
     if hasproj:
         dx=xr[1]-xr[0]
@@ -157,6 +174,9 @@ def obs_ijpos(gridfile,lons,lats,coor):
     else:
         oipos=ipos
         ojpos=jpos
+        if not IN:
+            oipos = np.array([-999.])
+            ojpos = np.array([-999.])
     gfh.close()
     return oipos,ojpos
 '''

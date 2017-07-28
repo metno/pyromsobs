@@ -159,7 +159,7 @@ class OBSstruct(object):
         field_list = self.getfieldlist()
         self.toarray()
         S=OBSstruct()
-        if isinstance(index, (int, long)):
+        if isinstance(index, (int)):
             index = slice(index, index+1, None)
         for names in field_list:
             if (len(self.__dict__[names])):

@@ -37,12 +37,12 @@ def sort_ascending(OBS):
     OBS.tolist()
     # order according to ascending obs_time
 
-    tmplist = zip(*[getattr(OBS,names) for names in field_list])
-    tmplist.sort()
-    tmplist = zip(*tmplist)
+    tmplist = sorted(zip(*[getattr(OBS,names) for names in field_list]))
+    #tmplist.sort()
+    tmplist = list(zip(*tmplist))
 
     for n in range(0,len(field_list)):
-        if (len(OBS.__dict__[names])):
+        if (len(OBS.__dict__[field_list[n]])):
             setattr(OBS,field_list[n],tmplist[n])
     OBS.toarray()
     OBS=setDimensions(OBS)

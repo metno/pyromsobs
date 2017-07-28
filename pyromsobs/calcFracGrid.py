@@ -10,21 +10,21 @@ from multiprocessing import Pool
 from datetime import datetime,timedelta
 
 def fracZ(depth,ZatOBS,mzi):
-    if  (depth<=ZatOBS[0]) : 
-        z=mzi[0]          
+    if  (depth<=ZatOBS[0]) :
+        z=mzi[0]
     elif (depth>=ZatOBS[-1]):
         z=mzi[-1]
     else:
         f=interp1d(ZatOBS,mzi)
         z=f(depth)
     return z
-           
+
 def multi_run_wrapper(args):
     return fracZ(*args)
 def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
-    
+
     '''
-    This function finds the fractional grid coordinates. 
+    This function finds the fractional grid coordinates.
     hisfile needs to contain information about grid vertical structure.
     For computational efficency, it should also contain projection information.
     (Not necessary for regular lat/lon grids)
@@ -34,45 +34,39 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
         OBS = OBSstruct(fid)
     else:
         OBS=OBSstruct(S)
-    
+
 
     if  not onlyVertical:
         OBS.Xgrid = np.empty_like(OBS.lon)
         OBS.Ygrid = np.empty_like(OBS.lon)
-        
+
         lons=np.unique(OBS.lon)
         sendlon=[]
         sendlat=[]
         putind=[]
-        
+
         for lon in lons:
-            index=np.where(OBS.lon == lon)[0]#.squeeze()
+            index=np.where(OBS.lon == lon)[0]
             lat_at_ind = OBS.lat[index]
-            #rint lat_at_ind.shape
             lats = np.unique(lat_at_ind)
-            
+
             for lat in lats:
-                ind = np.where(lat_at_ind == lat)[0]#squeeze()
+                ind = np.where(lat_at_ind == lat)[0]
                 sendlon.append(lon)
                 sendlat.append(lat)
                 putind.append(index[ind])
-                #ind = np.where(lat_at_ind == lat)[0].squeeze()
-                #rint len(ind), min(ind),max(ind)
-                #x, y = obs_ijpos(hisfile, lon, lat,'r')
-                #rint x, y
-                #OBS.Xgrid[index[ind]]=x
-                #OBS.Ygrid[index[ind]]=y
-             
+
 
         x, y = obs_ijpos(hisfile, np.array(sendlon), np.array(sendlat),'r')
 
+        #print('x,y, lat, lon: ', len(x),len(y), len(OBS.lon),len(OBS.lat))
         for n in range(0,len(sendlat)):
             OBS.Xgrid[putind[n]] = x[n]
             OBS.Ygrid[putind[n]] = y[n]
-        #OBS.Xgrid,OBS.Ygrid=obs_ijpos(hisfile,OBS.lon,OBS.lat,'r')
         x = None
         y=None
         OBS = OBS[np.where( (OBS.Xgrid >= 0) | (OBS.Ygrid >= 0)) ]
+
 
         # If all observations were outside the model domain, return OBS now
         if not len(OBS.lon):
@@ -83,7 +77,7 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
         if onlyHorizontal:
             OBS=setDimensions(OBS)
             return OBS
-        
+
     # Make sure OBS has Zgrid of same size and type as depth
     OBS.Zgrid=np.ones_like(OBS.depth)
     fid = Dataset(hisfile)
@@ -91,12 +85,12 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
     #fid.close()
     #fid = None
     # Find weights to calculate depth at position
-    # Must handle points that fall on 
-    nipos=np.zeros([4,len(OBS.Xgrid)]); njpos=np.zeros([4,len(OBS.Ygrid)])
-    nipos[0,:]=np.floor(OBS.Xgrid); njpos[0,:]=np.floor(OBS.Ygrid)
-    nipos[1,:]=np.floor(OBS.Xgrid); njpos[1,:]=np.ceil(OBS.Ygrid)
-    nipos[2,:]=np.ceil(OBS.Xgrid); njpos[2,:]=np.floor(OBS.Ygrid)
-    nipos[3,:]=np.ceil(OBS.Xgrid); njpos[3,:]=np.ceil(OBS.Ygrid)
+    # Must handle points that fall on
+    nipos=np.zeros([4,len(OBS.Xgrid)]).astype(int); njpos=np.zeros([4,len(OBS.Ygrid)]).astype(int)
+    nipos[0,:]=np.floor(OBS.Xgrid).astype(int); njpos[0,:]=np.floor(OBS.Ygrid).astype(int)
+    nipos[1,:]=np.floor(OBS.Xgrid).astype(int); njpos[1,:]=np.ceil(OBS.Ygrid).astype(int)
+    nipos[2,:]=np.ceil(OBS.Xgrid).astype(int); njpos[2,:]=np.floor(OBS.Ygrid).astype(int)
+    nipos[3,:]=np.ceil(OBS.Xgrid).astype(int); njpos[3,:]=np.ceil(OBS.Ygrid).astype(int)
     nmask=np.zeros_like(nipos)
     for n in range(0,len(OBS.depth)):
         nmask[0,n]=grid.mask_rho[njpos[0,n],nipos[0,n]]
@@ -107,7 +101,7 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
     ndist=np.sqrt((OBS.Xgrid-nipos)**2 + (OBS.Ygrid-njpos)**2)
     # If the observation is exactly on a grid point, ndist will be zero,
     # and the weights will come out as nan. This is handled by setting all
-    # nan's to 0.25. 
+    # nan's to 0.25.
     with np.errstate(invalid='ignore',divide='ignore'):
         weights=(ndist**-2)/np.sum(ndist**-2,axis=0)
     weights[np.where(np.isnan(weights))]=0.25
@@ -121,8 +115,8 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
     for n in range(0,len(OBS.depth)):
         arguments.append([OBS.depth[n],ZatOBS[:,n],mzi])
         '''
-        if  (OBS.depth[n]<=ZatOBS[0,n]) : 
-           OBS.Zgrid[n]=mzi[0]          
+        if  (OBS.depth[n]<=ZatOBS[0,n]) :
+           OBS.Zgrid[n]=mzi[0]
         elif (OBS.depth[n]>=ZatOBS[-1,n]):
 		   OBS.Zgrid[n]=mzi[-1]
         else:
@@ -130,9 +124,9 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
         '''
     if multi:
         pool=Pool()
-        results = pool.map(multi_run_wrapper,arguments)
+        results = list(pool.map(multi_run_wrapper,arguments))
     else:
-        results = map(multi_run_wrapper, arguments)
+        results = list(map(multi_run_wrapper, arguments))
     for n in range(0,len(OBS.depth)):
         OBS.Zgrid[n] = results[n]
     results = None
@@ -155,4 +149,3 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
     fid.close()
     OBS = setDimensions(OBS)
     return OBS
-
