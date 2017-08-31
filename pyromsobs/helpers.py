@@ -1,5 +1,5 @@
 import numpy as np
-
+import re
 
 def setDimensions(OBS):
     '''
@@ -60,9 +60,10 @@ def popEntries(popindex, OBS):
                 if (len(OBS.__dict__[names])):
                     del OBS.__dict__[names][index]
     elif (popindex.size<2) & (popindex.size>0):
-       index=popindex
-       if (len(OBS.__dict__[names])):
-           del OBS.__dict__[names][index]
+        index=popindex
+        for names in field_list:
+            if (len(OBS.__dict__[names])):
+                del OBS.__dict__[names][index]
     return OBS
 def atoi(text):
     return int(text) if text.isdigit() else text
@@ -74,3 +75,9 @@ def natural_keys(text):
     (See Toothy's implementation in the comments)
     '''
     return [ atoi(c) for c in re.split('(\d+)', text) ]
+def extract_number(string):
+    '''
+    Function that can help sort filelist with datestring in filename
+    '''
+    r = re.compile(r'(\d+)')
+    return int(r.findall(string)[0])

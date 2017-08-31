@@ -1,6 +1,7 @@
 from netCDF4 import Dataset
 import numpy as np
-from .helpers import setDimensions, natural_keys
+from .helpers import setDimensions, natural_keys,sort_ascending
+from .OBSstruct import OBSstruct
 from subprocess import call
 from glob import glob
 import re
@@ -27,11 +28,15 @@ def fast_merge(files, outputfile):
             call('ncks -O -x -v Nobs,survey_time --mk_rec_dmn datum '+files[n]+' '+'.tmp_obsfile_'+str(n)+'.nc', shell = True)
         except:
             pass
+    print(outputfile)
     tmpfiles = glob('.tmp_obsfile_*.nc')
     tmpfiles.sort(key=natural_keys)
     call('ncrcat -O '+' '.join(tmpfiles) + ' ' + outputfile, shell=True)
+    for f in tmpfiles:
+        call('rm '+f, shell = True)
     fid = Dataset(outputfile, 'r+')
     time = fid.variables['obs_time'][:]
+
     stime = np.unique(time)
     Nsurvey = len(stime)
     Nobs = np.ones_like(stime)*float('nan')
@@ -50,6 +55,13 @@ def fast_merge(files, outputfile):
     var.units= time.units
     var.calendar = "gregorian"
     var[:] = stime[:]
-    fid.close()
+
+    print(all(time[i] <= time[i+1] for i in range(len(time)-1)))
+    if not all(time[i] <= time[i+1] for i in range(len(time)-1)):
+        fid.close()
+        obs = OBSstruct(outputfile)
+        obs = sort_ascending(obs)
+        obs = setDimensions(obs)
+        obs.writeOBS(outputfile)
 
     return None

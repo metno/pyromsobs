@@ -4,7 +4,7 @@ from .OBSstruct import OBSstruct
 from netCDF4 import Dataset
 from roppy import SGrid
 
-def superob(S,hisfile):
+def superob(S,hisfile,superprov=77):
     '''
     This function checks the provided observation data and creates
     super observations when there are more than one meassurement of
@@ -114,7 +114,14 @@ def superob(S,hisfile):
             for names in binfields:
                 binned=np.bincount(varInd.astype(int),V.__dict__[names])
                 binned=binned[isdata]/count[isdata]
+
+                if names =='provenance':
+                    for s in range(len(binned)):
+                        if not binned[s] in set(V.provenance):
+                            binned[s] = superprov + state_vars[n]
+
                 Sout.__dict__[names].extend(binned[:])
+
                 if names =='value':
                     Vmean=binned
             binned = np.bincount(varInd.astype(int),V.value**2)
