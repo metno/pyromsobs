@@ -45,7 +45,11 @@ class OBSstruct(object):
 
                 # first the dimensions, must be present on file
                 self.Nsurvey = len(ifile.dimensions['survey'])
-                self.Nstate  = len(ifile.dimensions['state_variable'])
+                try:
+                    self.Nstate  = len(ifile.dimensions['state_variable'])
+                except KeyError:
+                    self.Nstate = len(ifile.dimensions['state_var'])
+
                 self.Ndatum  = len(ifile.dimensions['datum'])
 
                 # Now load Nobs and survey_time, must be present on fil
@@ -142,7 +146,7 @@ class OBSstruct(object):
 				   'lon' : [10,'obs_lon'],'lat' : [11,'obs_lat'] ,
 				   'provenance' : [3,'obs_provenance'],'meta' : [12,'obs_meta'],
 				   'true_time' : [13,'obs_true_time'] ,'true_depth' : [14,'obs_true_depth'],
-				   'instrumental_error' :[ 15,'instrumental_error']}
+				   'instrumental_error' :[ 15,'instrumental_error'], 'scale' : [16, 'obs_scale'], 'NLmodel_value': [17, 'NLmodel_value']}
 
         return obsvars
 
@@ -171,7 +175,7 @@ class OBSstruct(object):
         if hasattr(self,'variance'):
             S.variance=self.variance
         return S
-    def put(self,time,lon,lat,depth,otype,value, error = None, provenance = None, Xgrid = None, Ygrid = None, Zgrid = None, meta = None, true_time = None, true_depth = None, instrumental_error = None):
+    def put(self,time,lon,lat,depth,otype,value, error = None, provenance = None, Xgrid = None, Ygrid = None, Zgrid = None, meta = None, true_time = None, true_depth = None, instrumental_error = None, scale= None, NLmodel_value=None):
         try:
            if len(time) > 1:
                print('ERROR message: self.put method is intended for single observation only')
@@ -221,6 +225,17 @@ class OBSstruct(object):
               self.instrumental_error.append(instrumental_error)
            else:
               self.instrumental_error.append(-99999)
+           if scale:
+              self.scale.append(scale)
+           else:
+              self.scale.append(-99999)
+           if NLmodel_value:
+              self.NLmodel_value.append(NLmodel_value)
+           else:
+              self.NLmodel_value.append(-99999)
+
+
+
            self.toarray()
            self = setDimensions(self)
 
