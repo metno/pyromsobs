@@ -16,5 +16,5 @@ setup(name         = 'pyromsobs',
       url          = 'https://github.com/metno/pyromsobs',
       packages     = ['pyromsobs'],
       install_requires = ['roppy'],
-      dependency_links = ['pip install git+https://github.com/bjornaa/roppy.git']
+      dependency_links = ['pip install git+https://github.com/bjornaa/roppy.git --process-dependency-links --allow-all-external']
       )
