@@ -234,8 +234,6 @@ class OBSstruct(object):
            else:
               self.NLmodel_value.append(-99999)
 
-
-
            self.toarray()
            self = setDimensions(self)
 
