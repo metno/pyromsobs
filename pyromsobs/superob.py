@@ -48,7 +48,8 @@ def superob(S,hisfile,superprov=77):
         ind_t = np.where(OBS.time == OBS.survey_time[m])[0]
 
         for names in field_list:
-            T.__dict__[names]=OBS.__dict__[names][ind_t]
+           print(names)
+           T.__dict__[names]=OBS.__dict__[names][ind_t]
         t_std=np.zeros_like(ind_t)
         std=OBS.error[ind_t]
         for n in range (0,Nstate):

@@ -73,7 +73,9 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
             return OBS
         OBS = OBS[np.where((np.isfinite(OBS.Xgrid)) | ( np.isfinite(OBS.Ygrid)))]
         #OBS = setDimensions(OBS)
-        OBS=applyMask(OBS,hisfile)
+        if OBS.Ndatum != 0:
+            OBS=applyMask(OBS,hisfile)
+        
         if onlyHorizontal:
             OBS=setDimensions(OBS)
             return OBS

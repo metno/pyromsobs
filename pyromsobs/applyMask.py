@@ -15,15 +15,15 @@ def applyMask(S,romsfile):
     popindex=[]
     for o in range(0,OBS.Ndatum):
         # set up grids for griddata interpolation
-        if (np.floor(OBS.Xgrid[o]) == np.ceil(OBS.Xgrid[o])):
+        if (max(0, np.floor(OBS.Xgrid[o])) == max(0,np.ceil(OBS.Xgrid[o]))):
             xind = [OBS.Xgrid[o].astype(int)]
         else:
-            xind = [np.floor(OBS.Xgrid[o]).astype(int), np.ceil(OBS.Xgrid[o]).astype(int)]
+            xind = [max(0, np.floor(OBS.Xgrid[o]).astype(int)), np.ceil(OBS.Xgrid[o]).astype(int)]
 
-        if (np.floor(OBS.Ygrid[o]) == np.ceil(OBS.Ygrid[o])):
+        if (max(0, np.floor(OBS.Ygrid[o])) == max(0, np.ceil(OBS.Ygrid[o]))):
             yind = [OBS.Ygrid[o].astype(int)]
         else:
-            yind = [np.floor(OBS.Ygrid[o]).astype(int), np.ceil(OBS.Ygrid[o]).astype(int)]
+            yind = [max(0, np.floor(OBS.Ygrid[o]).astype(int)), np.ceil(OBS.Ygrid[o]).astype(int)]
 
         if ( (len(yind) == 2) & (len(xind) == 2) ):
             var = mask[yind[0]:yind[0]+2, xind[0]:xind[0]+2]
