@@ -84,7 +84,7 @@ def roms2obs(S, romsfile):
     MOD = OBSstruct(OBS); MOD.toarray()
     # First set all elements more than 1 day apart from model time to nan
     for n in np.where(np.isnan(Tgrid))[0]:
-        MOD.value[np.where(OBS.time==OBS.survey_time[n])] = np.nan
+        MOD.NLmodel_value[np.where(OBS.time==OBS.survey_time[n])] = np.nan
 
     arguments=[]; indices=[]
 
@@ -98,10 +98,10 @@ def roms2obs(S, romsfile):
     allresults = map(multi_run_wrapper,arguments)
     print('Length of results from multi_run_wrapper: ', len(allresults),  len(indices))
     print('Number of observations on OBS object: ', OBS.Ndatum)
-    T=OBS[np.where(np.isnan(MOD.value))]
+    T=OBS[np.where(np.isnan(MOD.NLmodel_value))]
     print('Number of observations to far away in time to do calculations: ', T.Ndatum)
     # Try to put results in MOD:
     for n in range (0,len(allresults)):
-        MOD.value[indices[n][0].astype(int)] = allresults[n]
+        MOD.NLmodel_value[indices[n][0].astype(int)] = allresults[n]
         MOD.error[indices[n][0].astype(int)] = indices[n][1]
     return MOD

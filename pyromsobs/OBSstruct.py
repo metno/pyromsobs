@@ -76,7 +76,10 @@ class OBSstruct(object):
 
                 for varname in obsvars:
                     try:
-                        self.__dict__[varname] = ifile.variables[obsvars[varname][1]][:]
+                        if len(ifile.variables[obsvars[varname][1]].dimensions) > 1:
+                            self.__dict__[varname] = ifile.variables[obsvars[varname][1]][-1,:]
+                        else:
+                            self.__dict__[varname] = ifile.variables[obsvars[varname][1]][:]
                     except:
                         pass
 
@@ -483,6 +486,12 @@ class OBSstruct(object):
                 var[:]=self.value[:]
             else:
                 print('dimension of obs_value is inconsistent with Ndatum, skipping')
+        if hasattr(self, 'NLmodel_value'):
+            if len(self.value) == self.Ndatum:
+                var=oncid.createVariable('NLmodel_value','f8',('datum',))
+                var.long_name='model at observation locations'
+                var[:]=self.NLmodel_value[:]
+
 
         if (not hasattr(self,'meta')):
             self.meta=np.zeros_like(self.value).tolist()
