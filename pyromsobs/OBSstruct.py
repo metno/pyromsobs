@@ -149,7 +149,8 @@ class OBSstruct(object):
 				   'lon' : [10,'obs_lon'],'lat' : [11,'obs_lat'] ,
 				   'provenance' : [3,'obs_provenance'],'meta' : [12,'obs_meta'],
 				   'true_time' : [13,'obs_true_time'] ,'true_depth' : [14,'obs_true_depth'],
-				   'instrumental_error' :[ 15,'instrumental_error'], 'scale' : [16, 'obs_scale'], 'NLmodel_value': [17, 'NLmodel_value']}
+				   'instrumental_error' :[ 15,'instrumental_error'], 'scale' : [16, 'obs_scale'], 
+                   'NLmodel_value': [17, 'NLmodel_value'], 'NLmodel_initial': [18, 'NLmodel_initial']}
 
         return obsvars
 
@@ -178,7 +179,7 @@ class OBSstruct(object):
         if hasattr(self,'variance'):
             S.variance=self.variance
         return S
-    def put(self,time,lon,lat,depth,otype,value, error = None, provenance = None, Xgrid = None, Ygrid = None, Zgrid = None, meta = None, true_time = None, true_depth = None, instrumental_error = None, scale= None, NLmodel_value=None):
+    def put(self,time,lon,lat,depth,otype,value, error = None, provenance = None, Xgrid = None, Ygrid = None, Zgrid = None, meta = None, true_time = None, true_depth = None, instrumental_error = None, scale= None, NLmodel_value=None, NLmodel_initial=None):
         try:
            if len(time) > 1:
                print('ERROR message: self.put method is intended for single observation only')
@@ -236,6 +237,10 @@ class OBSstruct(object):
               self.NLmodel_value.append(NLmodel_value)
            else:
               self.NLmodel_value.append(-99999)
+           if NLmodel_initial:
+              self.NLmodel_initial.append(NLmodel_value)
+           else:
+              self.NLmodel_initial.append(-99999)
 
            self.toarray()
            self = setDimensions(self)
