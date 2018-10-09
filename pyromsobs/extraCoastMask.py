@@ -51,4 +51,4 @@ def extraCoastMask(S, hisfile, ngrdpts=0):
             OBS.value[n] = np.nan
 
     # Return only finite OBS.values
-    return OBS[np.isfinte(OBS.value))]
+    return OBS[np.isfinte(OBS.value)]
