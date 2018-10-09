@@ -3,7 +3,7 @@ from .helpers import setDimensions
 from netCDF4 import Dataset
 import numpy as np
 
-def inds(ps, qs):
+def inds(ps):
     if (np.floor(ps) == np.ceil(ps)):
         ind = [ps.astype(int)]
     else:
