@@ -131,6 +131,7 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
         results = list(map(multi_run_wrapper, arguments))
     for n in range(0,len(OBS.depth)):
         OBS.Zgrid[n] = results[n]
+    OBS = OBS[np.where(np.isfinite(OBS.Zgrid))]
     results = None
     mzi = None
     arguments = None
