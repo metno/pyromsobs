@@ -1,20 +1,21 @@
 #! /usr/bin/env python
 import numpy as np
-#import matplotlib
-#matplotlib.use('Agg')
 import pyromsobs
 from datetime import datetime, timedelta
 from glob import glob
 from subprocess import call
 import os.path
 # Script to read csvfiles from the CastAway CTD and convert them to ROMS observation files
+# Test file included in the repository is CC1747002_20180606_165416.csv
+
 ref = datetime(1970,1,1)
-castawaydir = '/home/annks/work/pyromsobs_devel/example/'
+castawaydir = ''
 castawayfiles = glob(castawaydir+'CC*.csv')
 
 uncertainty = {'salt': 0.15*0.15, 'temp': 0.1*0.1}
 provenance = {'salt':157, 'temp': 156}
-#gridfile ='/lustre/storeB/project/fou/hi/opera/obs_configfiles/norshelf_2.4_vert_grd.nc'
+
+
 latkey = 'End latitude'
 lonkey = 'End longitude'
 timekey = 'UTC'
@@ -22,12 +23,15 @@ expected_format = '%Y-%m-%d %H:%M:%S'
 
 for castawayfile in castawayfiles:
     if os.path.exists('{}_obs.nc'.format(castawayfile.split('.')[0])):
-        continue
+        call('rm {}_obs.nc'.format(castawayfile.split('.')[0]) , shell = True)
     lat = np.nan
     lon = np.nan
     timestamp = np.nan
     gotpos = False
     # Get position and time from file header
+    # Will read csv file line by line, looking for the keys that identifies
+    # that position information is on the current line.
+    # When both lat, lon, and time is read gotpos will be set to True
     with open(castawayfile) as f:
         while not gotpos:
             line = f.readline()
@@ -36,11 +40,10 @@ for castawayfile in castawayfiles:
             elif lonkey in line:
                 lon = float(line.split(',')[-1])
             elif timekey in line:
-                print(line, line.split(',')[-1])
                 timestamp = (datetime.strptime(line.split(',')[-1].strip(), expected_format) - ref).total_seconds()/86400.
             if all(np.isfinite([lat,lon, timestamp])):
                 gotpos = True
-    print(lat,lon, timestamp)
+    print('\n Latitude: {}\n Longitude: {}\n Time: {}\n'.format(lat,lon, ref + timedelta(days=timestamp)))
 
     # read file body
     data = np.genfromtxt(castawayfile, delimiter=',', comments='#', skip_header = 29, dtype = (float, float, float, float, float, float, float, float),\
@@ -48,7 +51,7 @@ for castawayfile in castawayfiles:
 
     # Create roms observation object and fill in information
     salt = pyromsobs.OBSstruct()
-    salt.Nstate = 7
+    salt.Nstate = 7  # Set the state dimension
     salt.spherical = 1
     salt.variance = np.zeros(salt.Nstate)
 
@@ -71,23 +74,36 @@ for castawayfile in castawayfiles:
             except:
                 pass
 
-    salt = pyromsobs.helpers.setDimensions(salt)
-    print(salt.Ndatum)
-    #salt = pyromsobs.calcFracGrid(salt, gridfile)
+    salt = pyromsobs.helpers.setDimensions(salt) # Setting the dimensions correctly (including Nobs and survey_time variables)
+    print('Number of salinity observations read: {}'.format(salt.Ndatum))
+    #salt = pyromsobs.calcFracGrid(salt, gridfile) # If calculating fractional grid coordinates, the call would look like this
+
+    # calcFracGrid will also remove observations that fall outside the grid.
+    # Thus, we could end up with zero observations.
     if not salt.Ndatum:
         # No observations within model grid
-        # Create empty netcdf so we don't have to bother with this file later on
-        call('touch {}_obs.nc'.format( castawayfile.split('.')[0]), shell = True)
         continue
 
-    temp = pyromsobs.OBSstruct(salt)
-    temp.value = data['temp']
-    temp.type[:] = 6
+    # For the file type we are currently working on, there is a Temperature observation at
+    # the same location as the salinities. Thus, we need only make a copy of the salinity
+    # observation object, and change observation values and type.
+
+    temp = pyromsobs.OBSstruct(salt)  # Creating a copy of salt
+    temp.value = data['temp']        # Overwriting salinity values with Temperature
+    temp.type[:] = 6                   # Setting the observation type
+
+    # Finally, use the provenance and errors specified at the beginnig of the script.
     temp.provenance[:] = provenance['temp']
+
     temp.error[:] = uncertainty['temp']
     salt.provenance[:] = provenance['salt']
     salt.error[:] = uncertainty['salt']
-    print(salt.Ndatum, temp.Ndatum)
-    obs = pyromsobs.merge([salt, temp])
-    obs.writeOBS('{}_obs.nc'.format(castawayfile.split('.')[0]) , attfile='/home/annks/work/pyromsobs_devel/pyromsobs/METattributes.att')
+
+    obs = pyromsobs.merge([salt, temp])  # Merge the two observation objects into one
+
+    # The merge function also handles sorting according to ascending time
+    print('Total number of observations to be saved to file: {}\n'.format(obs.Ndatum))
+
+
+    obs.writeOBS('{}_obs.nc'.format(castawayfile.split('.')[0]) , attfile='../METattributes.att')
 exit()

@@ -142,6 +142,12 @@ class OBSstruct(object):
             self.globalatts={}
 
     def allvarnames(self):
+        # The numbers in the dictionary entries determines how data will be sorted in other functions/methods.
+        # Sorting observation will thus first order all observations after time.
+        # Secondly, if there are more observation types for a given time, these will be sorted according to type.
+        # Thirdly, if at a given time there are more observations of a given type, they will be sorted according to
+        # their depth
+
         obsvars = {'time' : [1,'obs_time'], 'type' : [2,'obs_type'],
 		           'depth' : [4,'obs_depth'],'Xgrid' : [5,'obs_Xgrid'],
 				   'Ygrid' : [6,'obs_Ygrid'], 'Zgrid' : [7,'obs_Zgrid'],
@@ -149,7 +155,7 @@ class OBSstruct(object):
 				   'lon' : [10,'obs_lon'],'lat' : [11,'obs_lat'] ,
 				   'provenance' : [3,'obs_provenance'],'meta' : [12,'obs_meta'],
 				   'true_time' : [13,'obs_true_time'] ,'true_depth' : [14,'obs_true_depth'],
-				   'instrumental_error' :[ 15,'instrumental_error'], 'scale' : [16, 'obs_scale'], 
+				   'instrumental_error' :[ 15,'instrumental_error'], 'scale' : [16, 'obs_scale'],
                    'NLmodel_value': [17, 'NLmodel_value'], 'NLmodel_initial': [18, 'NLmodel_initial']}
 
         return obsvars
