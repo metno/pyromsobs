@@ -149,8 +149,8 @@ class OBSstruct(object):
         # their depth
 
         obsvars = {'time' : [1,'obs_time'], 'type' : [2,'obs_type'],
-		           'depth' : [4,'obs_depth'],'Xgrid' : [5,'obs_Xgrid'],
-				   'Ygrid' : [6,'obs_Ygrid'], 'Zgrid' : [7,'obs_Zgrid'],
+		           'depth' : [6,'obs_depth'],'Xgrid' : [4,'obs_Xgrid'],
+				   'Ygrid' : [5,'obs_Ygrid'], 'Zgrid' : [7,'obs_Zgrid'],
 				   'error' : [8,'obs_error'] , 'value' :[9,'obs_value'],
 				   'lon' : [10,'obs_lon'],'lat' : [11,'obs_lat'] ,
 				   'provenance' : [3,'obs_provenance'],'meta' : [12,'obs_meta'],
@@ -463,7 +463,6 @@ class OBSstruct(object):
                 var[:]=self.Ygrid[:]
             else:
                 print('dimension of obs_Ygrid is inconsistent with Ndatum, skipping')
-
 
 
         if hasattr(self,'Zgrid'):
