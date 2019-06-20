@@ -1,4 +1,5 @@
 from .OBSstruct import OBSstruct
+from .get_profiles import get_profiles
 from .adjust_survey import adjust_survey
 from .calcFracGrid import calcFracGrid
 from .merge import merge
