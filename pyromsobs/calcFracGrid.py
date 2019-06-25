@@ -75,7 +75,7 @@ def calcFracGrid(S,hisfile,onlyVertical=False,onlyHorizontal=False,multi=False):
         #OBS = setDimensions(OBS)
         if OBS.Ndatum != 0:
             OBS=applyMask(OBS,hisfile)
-        
+
         if onlyHorizontal:
             OBS=setDimensions(OBS)
             return OBS

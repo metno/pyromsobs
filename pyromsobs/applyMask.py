@@ -47,24 +47,6 @@ def applyMask(S,romsfile):
             w = 1 - np.abs(xind - OBS.Xgrid[o])
             var = np.dot(w, var)
 
-        '''
-        print(var)
-        #var=mask[yind[0]:yind[1]+1,xind[0]:xind[1]+1]
-        print(OBS.Ygrid[o], OBS.Xgrid[o], len(yind), len(xind)))
-        print(var.shape)
-        var=mask[yind[0]:yind[1]+1,xind[0]:xind[1]+1]
-        if len(yind) > 1:
-            y = np.zeros_like(var)
-        if len(yind) > 1:
-            x = np.zeros_like(var)
-        for c in range(0,len(yind)):
-            for d in range(0,len(xind)):
-                y[c,d] = yind[c]
-                x[c,d] = xind[d]
-
-        var = griddata((y.flatten(),x.flatten()),var.flatten(), (OBS.Ygrid[o],OBS.Xgrid[o]))
-        print(var)
-        '''
         if (var < 0.25):
             popindex.append(o)
 

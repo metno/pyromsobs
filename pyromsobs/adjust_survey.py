@@ -139,18 +139,5 @@ def adjust_survey(S,dt):
     OBS.time=otime
     OBS=setDimensions(OBS)
 
-    '''
-    OBS.survey_time=survey_time
-    Nobs=np.ones_like(OBS.survey_time)*float('nan')
-    for item in enumerate(OBS.survey_time):
-        Nobs[item[0]] = int(len(np.array(np.argwhere(otime==item[1]))))
-    OBS.Nobs=Nobs
-    ind=np.argwhere(OBS.Nobs!=0).squeeze()
-    OBS.survey_time=OBS.survey_time[ind]
-    OBS.Nobs=OBS.Nobs[ind]
-    OBS.Nsurvey=len(OBS.survey_time)
-
-    OBS.time=otime
-    '''
     OBS.toarray()
     return OBS

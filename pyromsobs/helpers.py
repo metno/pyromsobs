@@ -9,10 +9,7 @@ def setDimensions(OBS):
     '''
     OBS.toarray()
     OBS.survey_time=np.unique(OBS.time)
-    '''
-    OBS.Nsurvey=len(OBS.survey_time)
-    OBS.Ndatum=len(OBS.time)
-    '''
+
     OBS.Nsurvey=len(OBS.survey_time)
     OBS.Ndatum=len(OBS.time)
     Nobs=np.ones_like(OBS.survey_time)*float('nan')
@@ -74,7 +71,7 @@ def natural_keys(text):
     http://nedbatchelder.com/blog/200712/human_sorting.html
     (See Toothy's implementation in the comments)
     '''
-    return [ atoi(c) for c in re.split('(\d+)', text) ]
+    return [ atoi(c) for c in re.split(r'(\d+)', text) ]
 def extract_number(string):
     '''
     Function that can help sort filelist with datestring in filename
