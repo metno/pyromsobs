@@ -83,6 +83,10 @@ class OBSstruct(object):
                     except:
                         pass
 
+                for varname in obsvars:
+                    if not hasattr(self, varname):
+                        setattr(self, varname, np.zeros_like(self.time)) 
+
                 # The global attributes, stored in a dictionary
                 self.globalatts={}
                 try:
@@ -423,7 +427,7 @@ class OBSstruct(object):
         if hasattr(self,'lat'):
             if len(self.lat) == self.Ndatum:
                 var=oncid.createVariable('obs_lat','f8',('datum',))
-                var.long_name='observation longitude'
+                var.long_name='observation latitude'
                 var.units ='degrees_north'
                 var[:]=self.lat[:]
             else:
