@@ -11,4 +11,3 @@ from .superob import superob
 from .roms2obs import roms2obs
 from .applyMask import applyMask
 from .extraCoastMask import extraCoastMask
-from .fast_merge import fast_merge
