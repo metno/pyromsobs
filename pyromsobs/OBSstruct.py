@@ -364,7 +364,7 @@ class OBSstruct(object):
             print("Consider adding this information!")
 
         if hasattr(self,'variance') and np.any(self.variance):
-            var=oncid.createVariable('obs_variance','f8',('state_variable',))
+            var=oncid.createVariable('obs_variance','f4',('state_variable',))
             var.long_name = 'global temporal and spatial observation variance'
             var[:]=self.variance[:]
 
@@ -413,7 +413,7 @@ class OBSstruct(object):
 
         if hasattr(self,'lon'):
             if len(self.lon) == self.Ndatum:
-                var=oncid.createVariable('obs_lon','f8',('datum',))
+                var=oncid.createVariable('obs_lon','f4',('datum',))
                 var.long_name='observation longitude'
                 var.units='degrees_east'
                 var[:]=self.lon[:]
@@ -422,7 +422,7 @@ class OBSstruct(object):
 
         if hasattr(self,'lat'):
             if len(self.lat) == self.Ndatum:
-                var=oncid.createVariable('obs_lat','f8',('datum',))
+                var=oncid.createVariable('obs_lat','f4',('datum',))
                 var.long_name='observation longitude'
                 var.units ='degrees_north'
                 var[:]=self.lat[:]
@@ -432,7 +432,7 @@ class OBSstruct(object):
 
         if hasattr(self,'depth'):
             if len(self.depth) == self.Ndatum:
-                var=oncid.createVariable('obs_depth','f8',('datum',))
+                var=oncid.createVariable('obs_depth','f4',('datum',))
                 var.long_name='depth of observation'
                 var.units='meters'
                 var.negative='downwards'
@@ -442,7 +442,7 @@ class OBSstruct(object):
 
         if hasattr(self,'true_depth'):
             if len(self.true_depth) == self.Ndatum:
-                var=oncid.createVariable('obs_true_depth','f8',('datum',))
+                var=oncid.createVariable('obs_true_depth','f4',('datum',))
                 var.long_name='true depth of observation'
                 var.units='meters'
                 var.negative='downwards'
@@ -450,7 +450,7 @@ class OBSstruct(object):
 
         if hasattr(self,'Xgrid'):
             if len(self.Xgrid) == self.Ndatum:
-                var=oncid.createVariable('obs_Xgrid','f8',('datum',))
+                var=oncid.createVariable('obs_Xgrid','f4',('datum',))
                 var.long_name='observation fractional x-grid location'
                 var[:]=self.Xgrid[:]
             else:
@@ -458,7 +458,7 @@ class OBSstruct(object):
 
         if hasattr(self,'Ygrid'):
             if len(self.Ygrid) == self.Ndatum:
-                var=oncid.createVariable('obs_Ygrid','f8',('datum',))
+                var=oncid.createVariable('obs_Ygrid','f4',('datum',))
                 var.long_name='observation fractional y-grid location'
                 var[:]=self.Ygrid[:]
             else:
@@ -467,7 +467,7 @@ class OBSstruct(object):
 
         if hasattr(self,'Zgrid'):
             if len(self.Zgrid) == self.Ndatum:
-                var=oncid.createVariable('obs_Zgrid','f8',('datum',))
+                var=oncid.createVariable('obs_Zgrid','f4',('datum',))
                 var.long_name='observation fractional z-grid location'
                 var[:]=self.Zgrid[:]
             else:
@@ -477,7 +477,7 @@ class OBSstruct(object):
 
         if hasattr(self,'error'):
             if len(self.error) == self.Ndatum:
-                var=oncid.createVariable('obs_error','f8',('datum',))
+                var=oncid.createVariable('obs_error','f4',('datum',))
                 var.long_name='observation error covariance'
                 var[:]=self.error[:]
             else:
@@ -485,20 +485,20 @@ class OBSstruct(object):
 
         if hasattr(self,'instrumental_error'):
             if len(self.instrumental_error) == self.Ndatum:
-                var=oncid.createVariable('instrumental_error','f8',('datum',))
+                var=oncid.createVariable('instrumental_error','f4',('datum',))
                 var.long_name='observation error covariance from instrument'
                 var[:]=self.instrumental_error[:]
 
         if hasattr(self,'value'):
             if len(self.value) == self.Ndatum:
-                var=oncid.createVariable('obs_value','f8',('datum',))
+                var=oncid.createVariable('obs_value','f4',('datum',))
                 var.long_name='observation value'
                 var[:]=self.value[:]
             else:
                 print('dimension of obs_value is inconsistent with Ndatum, skipping')
         if hasattr(self, 'NLmodel_value'):
             if len(self.value) == self.Ndatum:
-                var=oncid.createVariable('NLmodel_value','f8',('datum',))
+                var=oncid.createVariable('NLmodel_value','f4',('datum',))
                 var.long_name='model at observation locations'
                 var[:]=self.NLmodel_value[:]
 
@@ -513,7 +513,7 @@ class OBSstruct(object):
         if not hasattr(self,'meta'):
             self.meta=np.zeros_like(self.Ndatum)
 
-        var=oncid.createVariable('obs_meta','f8',('datum',))
+        var=oncid.createVariable('obs_meta','f4',('datum',))
         var.long_name="observation meta value"
         var.units="nondimensional"
         var[:]=self.meta[:]
