@@ -4,7 +4,7 @@ from .OBSstruct import OBSstruct
 from netCDF4 import Dataset
 from roppy import SGrid
 
-def superob(S,hisfile,superprov=77):
+def superob(S,hisfile,superprov=0):
     '''
     This function checks the provided observation data and creates
     super observations when there are more than one meassurement of
