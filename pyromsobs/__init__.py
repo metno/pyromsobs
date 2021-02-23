@@ -8,6 +8,5 @@ from .plot_obs import plot_obs
 from .plot_datum import plot_datum
 from .remove_duplicates import remove_duplicates
 from .superob import superob
-from .roms2obs import roms2obs
 from .applyMask import applyMask
 from .extraCoastMask import extraCoastMask

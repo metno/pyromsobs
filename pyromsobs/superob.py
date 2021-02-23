@@ -1,10 +1,10 @@
 import numpy as np
-from .helpers import setDimensions,accum_np
+from .utils import setDimensions,accum_np
 from .OBSstruct import OBSstruct
 from netCDF4 import Dataset
-from roppy import SGrid
+#from .sgrid import SGrid
 
-def superob(S,hisfile,superprov=77):
+def superob(S,superprov=0):
     '''
     This function checks the provided observation data and creates
     super observations when there are more than one meassurement of
@@ -21,24 +21,21 @@ def superob(S,hisfile,superprov=77):
 
     field_list=OBS.getfieldlist()
 
-    binfields=OBS.getfieldlist(); binfields.remove('time'); binfields.remove('type')
-    grid = SGrid(Dataset(hisfile))
-    Lm=grid.i1
-    Mm=grid.j1
-    N=grid.N
-    # Find observations associated with the same state variable
-    state_vars=np.unique(OBS.type)
-    Nstate=len(np.unique(OBS.type))
+    binfields = OBS.getfieldlist(); binfields.remove('time'); binfields.remove('type')
 
-    Sout=OBSstruct()
-    Sout.globalatts=OBS.globalatts
-    Sout.Nsurvey=OBS.Nsurvey
+    # Find observations associated with the same state variable
+    state_vars = np.unique(OBS.type)
+    Nstate = len(np.unique(OBS.type))
+
+    Sout = OBSstruct()
+    Sout.globalatts = OBS.globalatts
+    Sout.Nsurvey = OBS.Nsurvey
     Sout.Nstate = len(OBS.variance)
-    Sout.spherical=OBS.spherical
-    Sout.survey_time=OBS.survey_time
+    Sout.spherical = OBS.spherical
+    Sout.survey_time = OBS.survey_time
     Sout.variance = OBS.variance
     Sout.Nobs = np.zeros_like(OBS.Nobs).tolist()
-    Sout_std=[]
+    Sout_std = []
     # Compute super observations when needed
     for m in range(0, OBS.Nsurvey):
 
@@ -107,7 +104,6 @@ def superob(S,hisfile,superprov=77):
             # Sout
             isdata = np.where(count != 0)[0]
             Nsuper = len(isdata)
-            Sout.tolist()
             # bin all fields
             # remove time and type from field_list used in this loop:
 
@@ -120,7 +116,7 @@ def superob(S,hisfile,superprov=77):
                         if not binned[s] in set(V.provenance):
                             binned[s] = superprov + state_vars[n]
 
-                Sout.__dict__[names].extend(binned[:])
+                Sout.__dict__[names]  = np.append( Sout.__dict__[names], binned[:])
 
                 if names =='value':
                     Vmean=binned
@@ -128,8 +124,12 @@ def superob(S,hisfile,superprov=77):
             binned=binned[isdata]/count[isdata] - Vmean**2
             #Sout.std.extend(np.sqrt(binned))
 
-            Sout.type.extend(np.ones([Nsuper])*state_vars[n])
-            Sout.time.extend(np.ones([Nsuper])*OBS.survey_time[m])
+
+            Sout.type  = np.append( Sout.type, np.ones([Nsuper])*state_vars[n] )
+            Sout.time  = np.append( Sout.time, np.ones([Nsuper])*OBS.survey_time[m] )
+
+            #Sout.type.extend(np.ones([Nsuper])*state_vars[n])
+            #Sout.time.extend(np.ones([Nsuper])*OBS.survey_time[m])
             Sout.Nobs[m] =  Sout.Nobs[m]+Nsuper
 
             if hasattr(OBS,'provenance'):

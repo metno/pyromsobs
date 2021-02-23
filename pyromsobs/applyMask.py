@@ -1,6 +1,6 @@
 import numpy as np
 from netCDF4 import Dataset
-from .helpers import popEntries, setDimensions
+from .utils import popEntries, setDimensions
 from .OBSstruct import OBSstruct
 from scipy.interpolate import griddata,interp1d
 

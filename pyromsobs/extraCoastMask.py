@@ -1,5 +1,5 @@
 from .OBSstruct import OBSstruct
-from .helpers import setDimensions
+from .utils import setDimensions
 from netCDF4 import Dataset
 import numpy as np
 

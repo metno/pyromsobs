@@ -46,9 +46,6 @@ def obs_ijpos(gridfile,lons,lats,coor):
             xr=gfh.variables['x_v'][:]
             yr=gfh.variables['y_v'][:]
 
-    # Check if observations fall within polygon spanned by gridcorners
-    #poly=[(lonr[0,0],latr[0,0]), (lonr[-1,0],latr[-1,0]),(lonr[-1,-1],latr[-1,-1]),(lonr[0,-1],latr[0,-1]),]
-    #poly=[(lonr[0,0],latr[0,0]), (lonr[-1,0],latr[-1,0]),(lonr[-1,-1],latr[-1,-1]),(lonr[0,-1],latr[0,-1]),]
 
     edge=[]
     first=np.array([(lonr[:-1,0],latr[:-1,0])]).squeeze()
@@ -143,8 +140,6 @@ def obs_ijpos(gridfile,lons,lats,coor):
         jpos=(y-yr[0])/dy
 
     elif cartesian:
-        #dx=xr[0,3]-xr[0,2]
-        #dy=yr[3,0]-yr[2,0]
         [x1,y1]=gridproj(lonr[0,0],latr[0,0])
         [x2,y2]=gridproj(lonr[0,1],latr[0,1])
         dx=x2-x1
@@ -152,8 +147,6 @@ def obs_ijpos(gridfile,lons,lats,coor):
         dy=y2-y1
         [x,y]=gridproj(lons,lats)
         [x0,y0]=gridproj(lonr[0,0],latr[0,0])
-        #ipos=(x-xr[0,0])/dx
-        #jpos=(y-yr[0,0])/dy
 
         ipos=(x-x0)/dx
         jpos=(y-y0)/dy

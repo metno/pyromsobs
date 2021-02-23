@@ -16,12 +16,10 @@ setup(name         = 'pyromsobs',
       url          = 'https://github.com/metno/pyromsobs',
       packages     = ['pyromsobs'],
       install_requires=[
-        'roppy==0.6',
         'numpy>=1.16,<2.0',
         'scipy>=1.2,<2.0',
         'netcdf4>=1.4,<2.0',
         'matplotlib>=3.0,<4.0',
         'pyproj>=1.9,<3.0'
       ],
-      dependency_links = ['pip install git+https://github.com/bjornaa/roppy.git --process-dependency-links --allow-all-external']
       )

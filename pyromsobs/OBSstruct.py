@@ -2,7 +2,7 @@
 import operator
 import numpy as np
 from netCDF4 import Dataset
-from .helpers import setDimensions
+from .utils import setDimensions
 class OBSstruct(object):
     """ Simple ROMS observation file object
 
@@ -33,13 +33,13 @@ class OBSstruct(object):
     OBS.toarray()
     """
 
-    def __init__(self, ifile=None):
+    def __init__(self, ifile = None):
         if ifile:
             if not isinstance(ifile,OBSstruct):
                 # Check if ifile is string, if not we assume it is file id
                 # for netcdf file opened with fid=Dataset('netcdf_file.nc')
                 if isinstance(ifile, str):
-                    ifile=Dataset(ifile)
+                    ifile = Dataset(ifile)
 
                 # Read info from file
 
@@ -52,7 +52,7 @@ class OBSstruct(object):
 
                 self.Ndatum  = len(ifile.dimensions['datum'])
 
-                # Now load Nobs and survey_time, must be present on fil
+                # Now load Nobs and survey_time, must be present on file
                 self.Nobs        = ifile.variables['Nobs'][:]
                 self.survey_time = ifile.variables['survey_time'][:]
 
@@ -85,10 +85,10 @@ class OBSstruct(object):
 
                 for varname in obsvars:
                     if not hasattr(self, varname):
-                        setattr(self, varname, np.zeros_like(self.time)) 
+                        setattr(self, varname, np.array([]))
 
                 # The global attributes, stored in a dictionary
-                self.globalatts={}
+                self.globalatts = {}
                 try:
                     for name in ifile.ncattrs():
                         exec('self.globalatts["%s"] = """%s"""' % (name, getattr(ifile,name)))
@@ -124,13 +124,13 @@ class OBSstruct(object):
                         self.__dict__[varname] = np.array(ifile.__dict__[varname])
                     except:
                         pass
-                self.globalatts=dict(ifile.globalatts)
+                self.globalatts = dict(ifile.globalatts)
         else:
             # Create an empty OBSstruct
             #first the dimension
-            self.Nsurvey = None
-            self.Nstate  = None
-            self.Ndatum  = None
+            self.Nsurvey = 0
+            self.Nstate  = 7
+            self.Ndatum  = 0
 
             # some information on the data set
             self.spherical   = None
@@ -143,7 +143,7 @@ class OBSstruct(object):
             for varname in obsvars:
                 self.__dict__[varname] = np.array([])
             # The global attributes, stored in a dictionary
-            self.globalatts={}
+            self.globalatts = {}
 
     def allvarnames(self):
         # The numbers in the dictionary entries determines how data will be sorted in other functions/methods.
@@ -160,127 +160,110 @@ class OBSstruct(object):
 				   'provenance' : [3,'obs_provenance'],'meta' : [12,'obs_meta'],
 				   'true_time' : [13,'obs_true_time'] ,'true_depth' : [14,'obs_true_depth'],
 				   'instrumental_error' :[ 15,'instrumental_error'], 'scale' : [16, 'obs_scale'],
-                   'NLmodel_value': [17, 'NLmodel_value'], 'NLmodel_initial': [18, 'NLmodel_initial']}
+                   'NLmodel_value': [17, 'NLmodel_value'], 'NLmodel_initial': [18, 'NLmodel_initial'],
+                   'BgError_value': [19, 'BgError_value'], 'BgThresh_value': [20, 'BgThresh_value'],
+                   'innovation': [21, 'innovation'], 'increment': [22, 'increment'],
+                   'residual': [23, 'residual'], 'TLmodel_value': [24, 'TLmodel_value'],
+                   'misfit_initial': [25, 'misfit_initial'], 'misfit_final': [26, 'misfit_final']
+                   }
 
         return obsvars
 
 
     def getfieldlist(self):
         field_list = []
-        obsvars = sorted(self.allvarnames().items(), key=operator.itemgetter(1))
+        obsvars = sorted(self.allvarnames().items(), key = operator.itemgetter(1))
         for varname in obsvars:
-            if (hasattr(self,varname[0]) ):
-                field_list.append(varname[0])
+            if (hasattr(self,varname[0])):
+                if (len(getattr(self, varname[0]))):
+                    field_list.append(varname[0])
         return field_list
 
     def __getitem__(self,index):
         field_list = self.getfieldlist()
         self.toarray()
-        S=OBSstruct()
+        S = OBSstruct()
         if isinstance(index, (int)):
+            if index < 0:
+                index = len(getattr(self, field_list[0])) + index
             index = slice(index, index+1, None)
+        if isinstance(index, slice):
+
+            if index.start < 0:
+                index = slice(len(getattr(self, field_list[0])) + index.start, index.stop, None)
+            if index.stop < 0:
+                index = slice(index.start, len(getattr(self, field_list[0])) + index.stop, None )
+
         for names in field_list:
             if (len(self.__dict__[names])):
-                S.__dict__[names]=self.__dict__[names][index]
-        S=setDimensions(S)
+                S.__dict__[names] = self.__dict__[names][index]
+        S = setDimensions(S)
         if hasattr(self,'spherical'):
-            S.spherical=self.spherical
-        S.Nstate=self.Nstate
+            S.spherical = self.spherical
+        S.Nstate = self.Nstate
         if hasattr(self,'variance'):
-            S.variance=self.variance
+            S.variance = self.variance
         return S
-    def put(self,time,lon,lat,depth,otype,value, error = None, provenance = None, Xgrid = None, Ygrid = None, Zgrid = None, meta = None, true_time = None, true_depth = None, instrumental_error = None, scale= None, NLmodel_value=None, NLmodel_initial=None):
-        try:
-           if len(time) > 1:
-               print('ERROR message: self.put method is intended for single observation only')
-               return
-        except:
-           self.tolist()
-           self.time.append(time)
-           self.lon.append(lon)
-           self.lat.append(lat)
-           self.depth.append(depth)
-           self.type.append(otype)
-           self.value.append(value)
-           if error:
-              self.error.append(error)
-           else:
-              self.error.append(-99999)
-           if provenance:
-              self.provenance.append(provenance)
-           else:
-              self.provenance.append(-99999)
 
-           if Xgrid:
-              self.Xgrid.append(Xgrid)
-           else:
-              self.Xgrid.append(-99999)
-           if Ygrid:
-              self.Ygrid.append(Ygrid)
-           else:
-              self.Ygrid.append(-99999)
-           if Zgrid:
-              self.Zgrid.append(Zgrid)
-           else:
-              self.Zgrid.append(-99999)
-           if meta:
-              self.meta.append(meta)
-           else:
-              self.meta.append(-99999)
-           if true_time:
-              self.true_time.append(true_time)
-           else:
-              self.true_time.append(-99999)
-           if true_depth:
-              self.true_depth.append(true_depth)
-           else:
-              self.true_depth.append(-99999)
-           if instrumental_error:
-              self.instrumental_error.append(instrumental_error)
-           else:
-              self.instrumental_error.append(-99999)
-           if scale:
-              self.scale.append(scale)
-           else:
-              self.scale.append(-99999)
-           if NLmodel_value:
-              self.NLmodel_value.append(NLmodel_value)
-           else:
-              self.NLmodel_value.append(-99999)
-           if NLmodel_initial:
-              self.NLmodel_initial.append(NLmodel_value)
-           else:
-              self.NLmodel_initial.append(-99999)
+    def put(self, obs_dict, fill_value = np.nan):
+        '''
+        obs_dict should be a dictionary with field names as keys (e.g. value, lon, lat, time) and the corresponding values as elements
 
-           self.toarray()
-           self = setDimensions(self)
+        '''
+        if len([obs_dict['value']]) > 1:
+            print('ERROR message: self.put method is intended for single observation only')
+            return
+
+        if self.Ndatum: #(No point in the below if obs object is empty)
+            field_list = self.getfieldlist()
+            for key in obs_dict.keys():
+                if not len(getattr(self, key)):
+                    # Check if object has field indicated by key, if not create it
+                    setattr(self, key, np.ones_like(getattr(self, field_list[0]))*fill_value)
+
+            # Now the object is ready for appending the information provided in obs_dict.
+            # To ensure that we add to all elements, loop over field_list.
+            field_list = self.getfieldlist()
+            for name in field_list:
+                if name in obs_dict.keys():
+                    setattr(self, name, np.append(getattr(self, name), obs_dict[name]))
+                else:
+                    setattr(self, name, np.append(getattr(self, name),fill_value))
+            self = setDimensions(self)
+        else: # special treatment for empty obs object
+            for name in obs_dict.keys():
+                setattr(self, name, np.append(getattr(self, name), obs_dict[name]))
+            self = setDimensions(self)
 
     def append(self,S):
-        field_list = self.getfieldlist()
+        field_list = S.getfieldlist()
 
         if (type(S.time) == np.ndarray ):
             returnarray = True
         else:
             returnarray = False
-        self.tolist()
         for names in field_list:
             if (S.Ndatum > 0):
-                self.__dict__[names].extend(S.__dict__[names])
+                self.__dict__[names] = np.append(self.__dict__[names] ,S.__dict__[names])
 
-        self=setDimensions(self)
+        self = setDimensions(self)
         if returnarray:
             self.toarray()
+        else:
+            self.tolist()
+
 
     def tolist(self):
         '''
         Convert all variables to list (to enable sorting and deleting entries)
         '''
         field_list = self.getfieldlist()
+
         field_list.extend(['Nobs','survey_time'])
 
         for names in field_list:
             if not type(self.__dict__[names]) == list:
-                self.__dict__[names]=self.__dict__[names].tolist()
+                self.__dict__[names] = self.__dict__[names].tolist()
     def toarray(self):
         '''
         Convert all variables to array (to ease calculations)
@@ -293,13 +276,14 @@ class OBSstruct(object):
                 self.__dict__[names]=np.array(self.__dict__[names])
 
 
-
-
-
-    def writeOBS(self, output, reftime=None, timeunits=None,attfile=None):
+    def writeOBS(self, output, reftime = None, timeunits = None,attributes = None, mode  =  'default', exclude_list = []):
         ''' write OBSstruct to netcdf file
-            default time units is days, default time reference is 1970-01-01 00:00:00
-            A text file containing the desired global attributes may be provided
+            output - name
+            reftime - string  (e.g. 1970-01-01 00:00:00 (set as default))
+            timeunits - string (days)
+
+            For global attributes, either a dictionary ({attributename: attributevalue, attributename2: attributevalue2}), or
+            a text file containing the desired global attributes may be provided
             An globalatts.txt example:
             author = "annks@met.no"
             state_variables = "\n",
@@ -310,29 +294,40 @@ class OBSstruct(object):
                   "5: v-momentum component (m/s) \n",
                   "6: potential temperature (Celsius) \n",
                   "7: salinity (nondimensional)" ;
+
+            mode - default behaviour (mode = 'default') is to create an observation file defined variables
+                   if mode = 'modfile', additional variables read in from a modfile is written as well.
+            exclude_list - list containing names of fields NOT to be written to file, e.g. to save space
+                        exclude_list = ['lat', 'lon'] would prevent these variables from being written to file, even if present on the observation object
+
         '''
 
-        if attfile:
-            self.provenance_atts = {}
-            rem='";,\n'
-            f = open(attfile)
-            for line in f:
-                if '=' in line:
-                    name = line.split('=')[0].strip()
-                    cont = ''.join(x for x in line.split('=')[1].split('\n')[0] if x not in rem).strip()
-                else:
-                    cont = ' '.join([cont,''.join(x for x in line if x not in rem).strip()])
-                if name=='flag_values' or name=='flag_meanings':
-                   self.provenance_atts[name] = cont
-                else:
-                   self.globalatts[name] = cont.replace('\\n','\n')
-            f.close()
+        if attributes:
+            if type(attributes) == dict:
+                self.globalatts = attributes
+            else:
+
+                self.provenance_atts = {}
+                rem = '";,\n'
+
+                f = open(attributes)
+                for line in f:
+                    if '=' in line:
+                        name = line.split('=')[0].strip()
+                        cont = ''.join(x for x in line.split('=')[1].split('\n')[0] if x not in rem).strip()
+                    else:
+                        cont = ' '.join([cont,''.join(x for x in line if x not in rem).strip()])
+                    if name=='flag_values' or name=='flag_meanings':
+                       self.provenance_atts[name] = cont
+                    else:
+                       self.globalatts[name] = cont.replace('\\n','\n')
+                f.close()
         if not reftime:
-            reftime='1970-01-01 00:00:00'
+            reftime = '1970-01-01 00:00:00'
         if not timeunits:
             timeunits='days'
         # Create file:
-        oncid = Dataset(output,'w',format='NETCDF4')
+        oncid = Dataset(output,'w',format = 'NETCDF4')
 
         # Add the global attributes if any:
         oncid.setncatts(self.globalatts)
@@ -343,184 +338,227 @@ class OBSstruct(object):
             oncid.createDimension('datum',self.Ndatum)
         else:
             print("Nstate is not properly set")
-            print("Please add information (e.g. Nstate=7)")
+            print("Please add information (e.g. Nstate = 7)")
             print("variance should also be provided, this should be an array of length Nstate")
 
-        var=oncid.createVariable('Nobs','i4',('survey',))
-        var.long_name='number of observations with the same survey time'
-        var[:]=self.Nobs[:]
+        var = oncid.createVariable('Nobs','i4',('survey',))
+        var.long_name = 'number of observations with the same survey time'
+        var[:] = self.Nobs[:]
 
-        var=oncid.createVariable('survey_time','f8',('survey',))
-        var.long_name='survey time'
-        var.units= timeunits+" since "+reftime+" GMT"
+        var = oncid.createVariable('survey_time','f8',('survey',))
+        var.long_name = 'survey time'
+        var.units =  timeunits+" since "+reftime+" GMT"
         var.calendar = "gregorian"
-        var[:]=self.survey_time[:]
+        var[:] = self.survey_time[:]
 
         # Now add the variables:
         if hasattr(self,'spherical') and np.isscalar(self.spherical):
-            var=oncid.createVariable('spherical','i4')
-            var.long_name='grid type logical switch'
-            var.flag_values='0, 1'
-            var.flag_meanings='Cartesian, spherical'
-            var[:]=self.spherical
+            var = oncid.createVariable('spherical','i4')
+            var.long_name = 'grid type logical switch'
+            var.flag_values = '0, 1'
+            var.flag_meanings = 'Cartesian, spherical'
+            var[:] = self.spherical
         else:
             print("No information on grid type (spherical = 0 ,spherical= 1)")
             print("Consider adding this information!")
 
         if hasattr(self,'variance') and np.any(self.variance):
-            var=oncid.createVariable('obs_variance','f4',('state_variable',))
+            var = oncid.createVariable('obs_variance','f4',('state_variable',))
             var.long_name = 'global temporal and spatial observation variance'
-            var[:]=self.variance[:]
+            var[:] = self.variance[:]
 
-        if hasattr(self,'type'):
-            if len(self.type) == self.Ndatum:
-                var=oncid.createVariable('obs_type','i4',('datum',))
-                var.long_name = "model state variable associated with observations"
-                var.flag_values ="1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20"
-                var.flag_meanings = "zeta ubar vbar u v temperature salinity dummy dummy dummy dummy dummy dummy dummy dummy dummy dummy dummy dummy radvelocity"
-                var[:]=self.type[:]
-            else:
-                print('dimension of type is inconsistent with Ndatum, skipping')
-
-        if hasattr(self,'provenance'):
-            if len(self.provenance) == self.Ndatum:
-                var=oncid.createVariable('obs_provenance','i4',('datum',))
-                var.long_name = "observation origin"
-                try:
-                    var.flag_values = self.provenance_atts['flag_values']
-                    var.flag_meanings = self.provenance_atts['flag_meanings']
-                except:
-                    print('No provenance attributes available')
-                    pass
-                var[:]=self.provenance[:]
-            else:
-                print('dimension of provenance is inconsistent with Ndatum, skipping')
+        ncvars = define_vars_and_attributes()
+        try:
+            ncvars['provenance']['flag_values'] = self.provenance_atts['flag_values']
+            ncvars['provenance']['flag_meanings'] = self.provenance_atts['flag_meanings']
+        except:
+            print('No provenance attributes available')
+            pass
+        for var in ['time', 'true_time']:
+            ncvars[var]['units'] = timeunits+" since "+reftime+" GMT"
 
 
-        if hasattr(self,'time'):
-            if len(self.time) == self.Ndatum:
-                var=oncid.createVariable('obs_time','f8',('datum',))
-                var.long_name = "time of observation"
-                var.units =  timeunits+" since "+reftime+" GMT"
-                var.calendar = "gregorian"
-                var[:]=self.time[:]
-            else:
-                print('dimension of obs_time is inconsistent with Ndatum, skipping')
+        for variable in ncvars.keys():
+            if (ncvars[variable]['mode'] == 'modfile') & (mode != 'modfile') :
+                continue
+            if hasattr(self, variable):
+                if (len(getattr(self, variable)) == self.Ndatum) & (variable not in exclude_list):
+                    if not 'varname' in ncvars[variable].keys():
+                        ncvars[variable]['varname'] = variable
 
-        if hasattr(self,'true_time'):
-            if len(self.true_time) == self.Ndatum:
-                var=oncid.createVariable('obs_true_time','f8',('datum',))
-                var.long_name = "true time of observation"
-                var.units =  timeunits+" since "+reftime+" GMT"
-                var.calendar = "gregorian"
-                var[:]=self.true_time[:]
+                    var = oncid.createVariable(ncvars[variable]['varname'],ncvars[variable]['dtype'],('datum',), fill_value = ncvars[variable]['fill_value'])
+                    for key in ncvars[variable]:
+                        if key not in ['varname', 'fill_value', 'dtype', 'mode']:
+                            var.setncattr(key, ncvars[variable][key])
+                    var[:] = getattr(self, variable)
 
-        if hasattr(self,'lon'):
-            if len(self.lon) == self.Ndatum:
-                var=oncid.createVariable('obs_lon','f4',('datum',))
-                var.long_name='observation longitude'
-                var.units='degrees_east'
-                var[:]=self.lon[:]
-            else:
-                print('dimension of obs_lon is inconsistent with Ndatum, skipping')
-
-        if hasattr(self,'lat'):
-            if len(self.lat) == self.Ndatum:
-                var=oncid.createVariable('obs_lat','f4',('datum',))
-                var.long_name='observation latitude'
-                var.units ='degrees_north'
-                var[:]=self.lat[:]
-            else:
-                print('dimension of obs_lat is inconsistent with Ndatum, skipping')
-
-
-        if hasattr(self,'depth'):
-            if len(self.depth) == self.Ndatum:
-                var=oncid.createVariable('obs_depth','f4',('datum',))
-                var.long_name='depth of observation'
-                var.units='meters'
-                var.negative='downwards'
-                var[:]=self.depth
-            else:
-                print('dimension of obs_depth is inconsistent with Ndatum, skipping')
-
-        if hasattr(self,'true_depth'):
-            if len(self.true_depth) == self.Ndatum:
-                var=oncid.createVariable('obs_true_depth','f4',('datum',))
-                var.long_name='true depth of observation'
-                var.units='meters'
-                var.negative='downwards'
-                var[:]=self.true_depth
-
-        if hasattr(self,'Xgrid'):
-            if len(self.Xgrid) == self.Ndatum:
-                var=oncid.createVariable('obs_Xgrid','f4',('datum',))
-                var.long_name='observation fractional x-grid location'
-                var[:]=self.Xgrid[:]
-            else:
-                print('dimension of obs_Xgrid is inconsistent with Ndatum, skipping')
-
-        if hasattr(self,'Ygrid'):
-            if len(self.Ygrid) == self.Ndatum:
-                var=oncid.createVariable('obs_Ygrid','f4',('datum',))
-                var.long_name='observation fractional y-grid location'
-                var[:]=self.Ygrid[:]
-            else:
-                print('dimension of obs_Ygrid is inconsistent with Ndatum, skipping')
-
-
-        if hasattr(self,'Zgrid'):
-            if len(self.Zgrid) == self.Ndatum:
-                var=oncid.createVariable('obs_Zgrid','f4',('datum',))
-                var.long_name='observation fractional z-grid location'
-                var[:]=self.Zgrid[:]
-            else:
-                print('dimension of obs_Zgrid is inconsistent with Ndatum, skipping')
-
-
-
-        if hasattr(self,'error'):
-            if len(self.error) == self.Ndatum:
-                var=oncid.createVariable('obs_error','f4',('datum',))
-                var.long_name='observation error covariance'
-                var[:]=self.error[:]
-            else:
-                print('dimension of obs_error is inconsistent with Ndatum, skipping')
-
-        if hasattr(self,'instrumental_error'):
-            if len(self.instrumental_error) == self.Ndatum:
-                var=oncid.createVariable('instrumental_error','f4',('datum',))
-                var.long_name='observation error covariance from instrument'
-                var[:]=self.instrumental_error[:]
-
-        if hasattr(self,'value'):
-            if len(self.value) == self.Ndatum:
-                var=oncid.createVariable('obs_value','f4',('datum',))
-                var.long_name='observation value'
-                var[:]=self.value[:]
-            else:
-                print('dimension of obs_value is inconsistent with Ndatum, skipping')
-        if hasattr(self, 'NLmodel_value'):
-            if len(self.value) == self.Ndatum:
-                var=oncid.createVariable('NLmodel_value','f4',('datum',))
-                var.long_name='model at observation locations'
-                var[:]=self.NLmodel_value[:]
-
-
-        if (not hasattr(self,'meta')):
-            self.meta=np.zeros_like(self.value).tolist()
-
-        if not list(self.meta):
-            self.meta=np.zeros_like(self.value).tolist()
-
-        # Add meta whether it is initialized or not, as radial code requires it
-        if not hasattr(self,'meta'):
-            self.meta=np.zeros_like(self.Ndatum)
-
-        var=oncid.createVariable('obs_meta','f4',('datum',))
-        var.long_name="observation meta value"
-        var.units="nondimensional"
-        var[:]=self.meta[:]
-
-
+                else:
+                    if variable in ['time', 'value', 'error', 'Xgrid', 'Ygrid', 'Zgrid', 'depth', 'type', 'provenance', 'meta', 'lon', 'lat']:
+                        print('Skipping {}'.format(variable))
         oncid.close()
+
+def define_vars_and_attributes():
+    ncattrs = {'type' :
+            {'varname' : 'obs_type',
+            'dtype' : 'f4',
+            'fill_value': None,
+            'mode': 'default',
+            'long_name' :"model state variable associated with observations",
+            'flag_values':  "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20",
+            'flag_meanings': "zeta ubar vbar u v temperature salinity dummy dummy dummy dummy dummy dummy dummy dummy dummy dummy dummy dummy radvelocity"},
+            'provenance':
+            {'varname' : 'obs_provenance',
+            'dtype' : 'i4',
+            'mode': 'default',
+            'fill_value': None,
+            'long_name': 'observation origin'},
+            'time':
+            {'varname' : 'obs_time',
+            'long_name': 'time of observation',
+            'calendar': 'gregorian',
+            'fill_value': None,
+            'mode': 'default',
+            'dtype' : 'f8'},
+            'true_time':
+            {'varname' : 'true_time',
+            'long_name': 'true time of observation',
+            'calendar': 'gregorian',
+            'fill_value': 1.e+37,
+            'mode': 'default',
+            'dtype' : 'f8'},
+            'lon':
+            {'varname' : 'obs_lon',
+            'long_name': 'observation longitude',
+            'units': 'degrees_east',
+            'fill_value': None,
+            'mode': 'default',
+            'dtype' : 'f4'},
+            'lat':
+            {'varname' : 'obs_lat',
+            'long_name': 'observation latitude',
+            'dtype' : 'f4',
+            'fill_value': None,
+            'mode': 'default',
+            'units': 'degrees_north'},
+            'depth':
+            {'varname' : 'obs_depth',
+            'long_name': 'depth of observation',
+            'units': 'meters',
+            'dtype' : 'f4',
+            'fill_value': None,
+            'mode': 'default',
+            'negative': 'downwards'},
+            'true_depth':
+            {'long_name': 'true depth of observation',
+            'units': 'meters',
+            'dtype' : 'f4',
+            'fill_value': 1.e+37,
+            'mode': 'default',
+            'negative': 'downwards'},
+            'Xgrid':
+            {'varname' : 'obs_Xgrid',
+            'dtype' : 'f4',
+            'fill_value': None,
+            'mode': 'default',
+            'long_name': 'observation fractional x-grid location'},
+            'Ygrid':
+            {'varname' : 'obs_Ygrid',
+            'dtype' : 'f4',
+            'fill_value': None,
+            'mode': 'default',
+            'long_name': 'observation fractional y-grid location'},
+            'Zgrid':
+            {'varname' : 'obs_Zgrid',
+            'long_name': 'observation fractional z-grid location',
+            'fill_value': None,
+            'mode': 'default',
+            'dtype' : 'f4'},
+            'error':
+            {'varname' : 'obs_error',
+            'long_name': 'observation error covariance',
+            'fill_value': None,
+            'mode': 'default',
+            'dtype' : 'f4'},
+            'instrumental_error':
+            {'long_name': 'observation error covariance from instrument',
+            'fill_value': 1.e+37,
+            'mode': 'default',
+            'dtype' : 'f4'},
+            'value':
+            {'varname' : 'obs_value',
+            'long_name': 'observation value',
+            'fill_value': None,
+            'mode': 'default',
+            'dtype' : 'f4'},
+            'meta':
+            {'varname' : 'obs_meta',
+            'long_name': 'observation meta value',
+            'units': 'nondimensional',
+            'fill_value': None,
+            'mode': 'default',
+            'dtype' : 'f4'},
+            'scale':
+            {'varname' : 'obs_scale',
+            'long_name': "observation screening/normalization scale",
+            'fill_value': 0,
+            'mode': 'modfile',
+            'dtype' : 'i4'},
+            'NLmodel_value':
+            {'long_name': "model at observation locations",
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4'},
+            'NLmodel_initial':
+            {'long_name': "initial nonlinear model at observation locations",
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4'},
+            'BgError_value':
+            {'long_name': "Background error at observation locations",
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'units': 'nulvar',
+            'dtype' : 'f4'},
+            'innovation':
+            {'long_name': "4D-Var innovation: observation minus background, d_b = y - H(x_b)",
+            'units': 'state variable units',
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4'},
+            'increment':
+            {'long_name': "4D-Var increment: analysis minus background, dx_a = H(x_a) - H(x_b)",
+            'units': 'state variable units',
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4'},
+            'residual':
+            {'long_name': "4D-Var residual: observation minus analysis, d_a = y - H(x_b + dx_a)",
+            'units': 'state variable units',
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4'},
+            'BgThresh_value':
+            {'long_name':"Threshold for background quality control check of observations",
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4'},
+            'TLmodel_value':
+            {'long_name' :  "tangent linear model at observation locations",
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4'},
+            'misfit_initial':
+            {'long_name':"initial model-observation misfit",
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4' },
+            'misfit_final':
+            {'long_name':"final model-observation misfit",
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4' }
+
+            }
+
+
+    return ncattrs

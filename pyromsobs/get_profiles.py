@@ -1,9 +1,9 @@
 import numpy as np
-from .helpers import sort_ascending
+from .utils import sort_ascending
 from .OBSstruct import OBSstruct
 from netCDF4 import Dataset
 
-def get_profiles(S, vartype = None, provtype = None, ndepths = 2):
+def get_profiles(S, obstype = None, provtype = None, ndepths = 2):
     '''
     This function identifies observations that constitute a vertical
     profile
@@ -11,7 +11,7 @@ def get_profiles(S, vartype = None, provtype = None, ndepths = 2):
     Input:
 
     OBS - OBSstruct object or observation netcdf file
-    vartype     -   if defined it should point to one or more of the
+    obstype     -   if defined it should point to one or more of the
                     state variables. Can be scalar or list
     ndepths     -   minimum number of unique depths in a profile
 
@@ -28,17 +28,17 @@ def get_profiles(S, vartype = None, provtype = None, ndepths = 2):
     else:
         OBS=OBSstruct(S)
 
-    if vartype:
-        if not type(vartype) in [list, int, float]:
+    if obstype:
+        if not type(obstype) in [list, int, float]:
             ERROR('Vartype argument must be either scalar or list of integer values')
             return
 
-        if type(vartype) in [int,float]:
-            vartype = [vartype]
+        if type(obstype) in [int,float]:
+            obstype = [obstype]
 
-        # Subsample OBS to only hold observation of the requested vartype
-        OBS = OBS[np.where(np.in1d(OBS.type, vartype))]
-        # Subsample OBS to only hold observation of the requested vartype
+        # Subsample OBS to only hold observation of the requested obstype
+        OBS = OBS[np.where(np.in1d(OBS.type, obstype))]
+        # Subsample OBS to only hold observation of the requested obstype
         if not OBS.Ndatum:
             ERROR('No observations matching the requested variable type')
             return
@@ -49,7 +49,7 @@ def get_profiles(S, vartype = None, provtype = None, ndepths = 2):
             return
 
         if type(provtype) in [int, float]:
-            vartype = [vartype]
+            obstype = [obstype]
 
         # Subsample OBS to only hold observation of the requested provenance
         OBS = OBS[np.where(np.in1d(OBS.provenance, provtype))]

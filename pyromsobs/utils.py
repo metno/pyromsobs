@@ -1,6 +1,6 @@
 import numpy as np
 import re
-
+from datetime import datetime, timedelta
 def setDimensions(OBS):
     '''
     Takes an observation structure, calculate unique survey_times
@@ -25,6 +25,17 @@ def accum_np(accmap, a, func=np.sum):
         vals[i] = func(a[indices[i]:indices[i+1]])
     return vals
 
+def roundTime(dt=None, roundTo=60):
+    """Round a datetime object to any time lapse in seconds
+    dt : datetime.datetime object, default now.
+    roundTo : Closest number of seconds to round to, default 1 minute.
+    Author: Thierry Husson 2012 - Use it as you want but don't blame me.
+    """
+    if dt == None : dt = datetime.now()
+    seconds = (dt.replace(tzinfo=None) - dt.min).seconds
+    rounding = (seconds+roundTo/2) // roundTo * roundTo
+    return dt + timedelta(0,rounding-seconds,-dt.microsecond)
+
 def sort_ascending(OBS):
     '''
     Takes an observation structure and sorts the observations
@@ -32,10 +43,9 @@ def sort_ascending(OBS):
     '''
     field_list=OBS.getfieldlist()
     OBS.tolist()
-    # order according to ascending obs_time
 
+    # order according to ascending obs_time
     tmplist = sorted(zip(*[getattr(OBS,names) for names in field_list]))
-    #tmplist.sort()
     tmplist = list(zip(*tmplist))
 
     for n in range(0,len(field_list)):
@@ -45,6 +55,7 @@ def sort_ascending(OBS):
     OBS=setDimensions(OBS)
 
     return OBS
+
 def popEntries(popindex, OBS):
     field_list=OBS.getfieldlist()
     OBS.tolist()
@@ -62,6 +73,7 @@ def popEntries(popindex, OBS):
             if (len(OBS.__dict__[names])):
                 del OBS.__dict__[names][index]
     return OBS
+
 def atoi(text):
     return int(text) if text.isdigit() else text
 
@@ -72,6 +84,7 @@ def natural_keys(text):
     (See Toothy's implementation in the comments)
     '''
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
+
 def extract_number(string):
     '''
     Function that can help sort filelist with datestring in filename
