@@ -20,6 +20,8 @@ setup(name         = 'pyromsobs',
         'scipy>=1.2,<2.0',
         'netcdf4>=1.4,<2.0',
         'matplotlib>=3.0,<4.0',
-        'pyproj>=1.9,<3.0'
+        'pyproj>=1.9,<3.0',
+        'shapely>=1.7,<2.0',
+        'cartopy>=0.17,<2.0'
       ],
       )
