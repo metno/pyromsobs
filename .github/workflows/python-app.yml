@@ -20,7 +20,8 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get install libproj-dev proj-data proj-bin  
-        sudo apt-get install libgeos-dev        
+        sudo apt-get install libgeos-dev 
+        sudo apt install gcc       
         python -m pip install --upgrade pip
         pip install Cython
         pip install -r requirements.txt
