@@ -16,7 +16,7 @@ jobs:
     - name: Update conda environment
       uses: matthewrmshin/conda-action@v1
       with:
-        args: conda env update -f ./.github/workflows/environmemt.yml
+        args: conda env update -f ./.github/workflows/environment.yml
     - name: Run "pytest" with conda environment
       uses: matthewrmshin/conda-action@v1
       with:
