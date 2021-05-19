@@ -1,4 +1,4 @@
-name: github_action
+name: base
 channels:
   - conda-forge
   - defaults
