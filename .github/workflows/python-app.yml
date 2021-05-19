@@ -18,6 +18,6 @@ jobs:
       with:
         args: conda env update -f ./.github/workflows/environment.yml
     - name: Run "pytest" with conda environment
-      uses: matthewrmshin/conda-action@v1
-      with:
-        args: pytest -v
+      run: |
+           conda activate test
+           pytest -v
