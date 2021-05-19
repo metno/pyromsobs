@@ -19,14 +19,15 @@ jobs:
         python-version: 3.7
     - name: Install dependencies
       run: |
-        sudo apt-get install libproj-dev proj-data proj-bin  
-        sudo apt-get install libgeos-dev 
-        sudo apt install gcc       
-        python -m pip install --upgrade pip
-        pip install Cython
-        pip install -r requirements.txt
-        python setup.py install
-        pip install pytest
+        #sudo apt-get install libproj-dev proj-data proj-bin  
+        #sudo apt-get install libgeos-dev 
+        #sudo apt install gcc       
+        #python -m pip install --upgrade pip
+        #pip install Cython
+        #pip install -r requirements.txt
+        #python setup.py install
+        #pip install pytest
+        $CONDA/bin/conda env update --file spec-file.txt --name base
     - name: Test with pytest
       run: |
-        pytest -v
+        $CONDA/bin/pytest -v
