@@ -13,13 +13,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - name: Update conda environment
+      uses: matthewrmshin/conda-action@v1
       with:
-        python-version: 3.7
-    - name: Install dependencies
-      run: |
-        conda env update --file spec-file.txt --name base
-    - name: Test with pytest
-      run: |
-        $CONDA/bin/pytest -v
+        args: conda env update -f ./spec-file.txt
+    - name: Run "pytest" with conda environment
+      uses: matthewrmshin/conda-action@v1
+      with:
+        args: pytest -v
