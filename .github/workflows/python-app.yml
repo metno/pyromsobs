@@ -20,4 +20,5 @@ jobs:
     - name: Run "pytest" with conda environment
       run: |
            conda install pytest
+           conda list
            $CONDA/bin/pytest -v
