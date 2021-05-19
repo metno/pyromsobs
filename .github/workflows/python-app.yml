@@ -22,5 +22,5 @@ jobs:
            conda env update -f ./.github/workflows/environment.yml
            conda list
            conda install pip
-           pip install -r requirements.txt
+           pip install .
            $CONDA/bin/pytest -v
