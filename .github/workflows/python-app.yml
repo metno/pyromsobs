@@ -20,4 +20,4 @@ jobs:
     - name: Run "pytest" with conda environment
       uses: matthewrmshin/conda-action@v1
       with:
-        args: pytest -v
+        args: $CONDA/bin/pytest -v
