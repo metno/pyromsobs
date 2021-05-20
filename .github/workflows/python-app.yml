@@ -19,6 +19,7 @@ jobs:
         args: conda env update -f ./.github/workflows/environment.yml
     - name: Run "pytest" with conda environment
       run: |
+           conda init bash
            conda list
            conda activate base
            conda run python setup.py install
