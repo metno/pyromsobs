@@ -13,14 +13,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Update conda environment
-      uses: matthewrmshin/conda-action@v1
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
       with:
-        args: conda env update -f ./.github/workflows/environment.yml
-    - name: Run "pytest" with conda environment
+        python-version: 3.7
+    - name: Install dependencies
       run: |
-           conda init bash
-           conda list
-           conda activate base
-           conda run python setup.py install
-           conda run pytest -v
+        $CONDA/bin/conda env update -f ./.github/workflows/environment.yml --name base
+        $CONDA/bin/pip install pyproj
+    - name: Install pyromsobs
+      run: |
+        $CONDA/bin/python setup.py install
+    - name: Run "pytest"
+      run: |
+        $CONDA/bin/conda install pytest
+        $CONDA/bin/pytest
