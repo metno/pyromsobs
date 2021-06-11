@@ -2,7 +2,8 @@ import numpy as np
 from netCDF4 import Dataset
 from .utils import popEntries,setDimensions
 from .OBSstruct import OBSstruct
-def remove_duplicates(S):
+import pandas as pd
+def remove_duplicates(S, coordinate = 'fractional'):
     '''
     This function identifies duplicated observations
     and makes sure all observation on output are unique.
@@ -10,8 +11,8 @@ def remove_duplicates(S):
     Input:
 
     OBS - OBSstruct object or observation netcdf file
-
-    OBS  - observation object
+    coordinate - Whether to base method on fractional grid coordinates (default)
+                or  use lon/lat/depth  'geographical'
     '''
     if not isinstance(S,OBSstruct):
         fid = Dataset(S)
@@ -26,18 +27,30 @@ def remove_duplicates(S):
     OBSout.spherical = OBS.spherical
     OBSout.globalatts = OBS.globalatts
 
-    unique_obs= set()
-    ntypes = np.unique(OBS.type)
-    for typ in ntypes:
-        OBST = OBS[np.where(OBS.type == typ)]
 
-        for n in range(0,OBST.Ndatum):
-            unique_obs.add(( np.round(OBST.time[n],3), np.round(OBST.Xgrid[n],3),np.round(OBST.Ygrid[n],3), np.round(OBST.Zgrid[n],3), np.round(OBST.value[n],4)))
-        if len(unique_obs) == OBST.Ndatum:
-            OBSout.append(OBST)
-            continue
-        for instance in unique_obs:
-            TS = OBST[np.where( (np.round(OBST.time,3) == np.round(instance[0],3)) & (np.round(OBST.Xgrid,3) == np.round(instance[1],3)) & (np.round(OBST.Ygrid,3) == np.round(instance[2],3)) & (np.round(OBST.Zgrid,3) == np.round(instance[3],3)) &(np.round(OBST.value,4) == np.round(instance[4],4)))]
-            OBSout.append(TS[0])
+    #  Create a pandas dataframe from the observation object:
+    data = {}
+    for name in OBS.getfieldlist():
+        data[name] = getattr(OBS, name)
+
+    if coordinate == 'fractional':
+        identifyers = {'X' : 'Xgrid', 'Y':'Ygrid', 'Z':'Zgrid'}
+    elif coordinate == 'geographical':
+        identifyers = {'X' : 'lon', 'Y':'lat', 'Z':'depth'}
+    identifyers['T'] = 'time'
+    identifyers['V'] = 'value'
+
+    # expand data with rounded values that will be used to test uniqueness
+    for name in identifyers.keys():
+        data[name] = np.round(getattr(OBS, identifyers[name]), 3)
+
+    # Finally, the dataframe:
+    df = pd.DataFrame(data)
+    df=df.drop_duplicates(subset = ["T","X","Y","Z","V","type"])
+
+    # Convert the reduced data set back to observation object
+    for name in OBS.getfieldlist():
+        setattr(OBSout, name, df[name].values)
+
     OBSout = setDimensions(OBSout)
     return OBSout

@@ -351,19 +351,16 @@ def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
         return C
 
     elif Vstretching == 5:
-        # trenger Cs_r
-        if theta_s > 0:
-            Csur = (1.0 - np.cosh(theta_s * S))/(np.cosh(theta_s) - 1.0)
+        if stagger == 'rho':
+            k = np.arange(N) + 0.5
+        elif stagger == 'w':
+            k = np.arange(N)
         else:
-            Csur = - (S * S)
-
-        if theta_b > 0:
-            Cbot = (np.exp(theta_b * Csur ) -1.0)/(1.0 - np.exp(-1*theta_b))
-            C = Cbot
-        else:
-            C = Csur
+            raise ValueError("stagger must be 'rho' or 'w'")
+        S = -(k**2 - 2.*k*N + k + N**2 - N) / (N**2 - N) - 0.01 * (k**2 - k*N) / (1 - N)
+        C = (1 - np.cosh(theta_s * S)) / (np.cosh(theta_s) - 1)
+        C = (np.exp(theta_b * C) - 1) / (1 - np.exp(-theta_b))
         return C
-
     else:
         raise ValueError("Unknown Vstretching")
 

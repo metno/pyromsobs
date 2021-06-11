@@ -22,6 +22,7 @@ setup(name         = 'pyromsobs',
         'matplotlib>=3.0,<4.0',
         'pyproj>=1.9,<4.0',
         'shapely>=1.7,<2.0',
-        'cartopy>=0.17,<2.0'
+        'cartopy>=0.17,<2.0',
+        'pandas>=1.2,<2.0'
       ],
       )
