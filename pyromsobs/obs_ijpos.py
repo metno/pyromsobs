@@ -60,6 +60,10 @@ def obs_ijpos(gridfile,lons,lats,coor):
     
     if lats.size >1: 
         lons=lons[ind]; lats=lats[ind]
+        # If there's no lons, lats left at this stage, return oipos, ojpos with -999 everywhere
+        if not len(lons):
+           return np.ones_like(IN)*-999, np.ones_like(IN)*-999
+  
     try:
         try:
             mapstr=str(gfh.variables['h'].getncattr('mapping'))
