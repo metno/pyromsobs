@@ -89,9 +89,9 @@ def get_profiles(S, obstype = None, provtype = None, ndepths = 2):
     positions = np.array([positions[n] for n in range(len(positions)) if depths[n] >=  ndepths ])
 
     # Now we need to strip down the observation object
-    index =  np.argwhere( (np.in1d(OBS.time,positions[:,0])) & (np.in1d(OBS.type ,positions[:,1]))
+    index =  np.squeeze(np.argwhere( (np.in1d(OBS.time,positions[:,0])) & (np.in1d(OBS.type ,positions[:,1]))
                          & (np.in1d(OBS.provenance, positions[:,2])) & (np.in1d(OBS.lon ,positions[:,3]))
-                         & (np.in1d(OBS.lat,positions[:,4])) )
+                         & (np.in1d(OBS.lat,positions[:,4])) ))
     OBS = OBS[index]
 
 
@@ -101,9 +101,9 @@ def get_profiles(S, obstype = None, provtype = None, ndepths = 2):
 
     # Loop over the unique profile locations
     for n in range(NPROF):
-        index =  np.argwhere( (OBS.time == positions[n,0]) & (OBS.type == positions[n,1])
+        index =  np.squeeze(np.argwhere( (OBS.time == positions[n,0]) & (OBS.type == positions[n,1])
                              & (OBS.provenance == positions[n,2]) & (OBS.lon == positions[n,3])
-                             & (OBS.lat == positions[n,4]) )
+                             & (OBS.lat == positions[n,4]) ))
         profileID[index] = n
 
 
