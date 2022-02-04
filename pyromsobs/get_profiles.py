@@ -30,7 +30,7 @@ def get_profiles(S, obstype = None, provtype = None, ndepths = 2):
 
     if obstype:
         if not type(obstype) in [list, int, float]:
-            ERROR('Vartype argument must be either scalar or list of integer values')
+            print('ERROR: Vartype argument must be either scalar or list of integer values')
             return
 
         if type(obstype) in [int,float]:
@@ -40,12 +40,12 @@ def get_profiles(S, obstype = None, provtype = None, ndepths = 2):
         OBS = OBS[np.where(np.in1d(OBS.type, obstype))]
         # Subsample OBS to only hold observation of the requested obstype
         if not OBS.Ndatum:
-            ERROR('No observations matching the requested variable type')
+            print('ERROR: No observations matching the requested variable type')
             return
 
     if provtype:
         if not type(provtype) in [list, int, float]:
-            ERROR('Vartype argument must be either scalar or list of integer values')
+            print('ERROR: Vartype argument must be either scalar or list of integer values')
             return
 
         if type(provtype) in [int, float]:
@@ -54,7 +54,7 @@ def get_profiles(S, obstype = None, provtype = None, ndepths = 2):
         # Subsample OBS to only hold observation of the requested provenance
         OBS = OBS[np.where(np.in1d(OBS.provenance, provtype))]
         if not OBS.Ndatum:
-            ERROR('No observations matching the requested provenance')
+            print('ERROR: No observations matching the requested provenance')
             return
 
 
