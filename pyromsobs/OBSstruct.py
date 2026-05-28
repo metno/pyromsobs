@@ -100,14 +100,14 @@ class OBSstruct(object):
                 # Create an empty OBSstruct
                 #first the dimension
 
-                self.Nsurvey = np.int(ifile.Nsurvey)
-                self.Ndatum  = np.int(ifile.Ndatum)
+                self.Nsurvey = int(ifile.Nsurvey)
+                self.Ndatum  = int(ifile.Ndatum)
 
                 self.Nobs        = np.array(ifile.Nobs)
                 self.survey_time = np.array(ifile.survey_time)
                 # Allow for the possibilty of statevars and variance not being defined yet
                 try:
-                    self.Nstate  = np.int(ifile.Nstate)
+                    self.Nstate  = int(ifile.Nstate)
                 except:
                     self.Nstate = None
                 try:
@@ -164,7 +164,10 @@ class OBSstruct(object):
                    'BgError_value': [19, 'BgError_value'], 'BgThresh_value': [20, 'BgThresh_value'],
                    'innovation': [21, 'innovation'], 'increment': [22, 'increment'],
                    'residual': [23, 'residual'], 'TLmodel_value': [24, 'TLmodel_value'],
-                   'misfit_initial': [25, 'misfit_initial'], 'misfit_final': [26, 'misfit_final']
+                   'misfit_initial': [25, 'misfit_initial'], 'misfit_final': [26, 'misfit_final'],
+                   'NLmodel_unvetted' :[27, 'NLmodel_unvetted'], 'NLmodel_value_unvetted' : [28, 'NLmodel_value_unvetted'],
+                   'ObsImpact_total': [29, 'ObsImpact_total'], 'ObsImpact_IC': [30, 'ObsImpactIC'],
+                    'ObsImpact_BC': [31, 'ObsImpact_BC'], 'ObsImpact_FC': [32, 'ObsImpact_FC'], 
                    }
 
         return obsvars
@@ -508,6 +511,16 @@ def define_vars_and_attributes():
             'fill_value': 1.e+37,
             'mode': 'modfile',
             'dtype' : 'f4'},
+            'NLmodel_unvetted':
+            {'long_name': "initial model at observation locations unvetted by quality control",
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4'},
+            'NLmodel_value_unvetted':
+            {'long_name': "final model at observation locations unvetted by quality control",
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4'},
             'NLmodel_initial':
             {'long_name': "initial nonlinear model at observation locations",
             'fill_value': 1.e+37,
@@ -554,6 +567,26 @@ def define_vars_and_attributes():
             'dtype' : 'f4' },
             'misfit_final':
             {'long_name':"final model-observation misfit",
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4' },
+            'ObsImpact_total':
+            {'long_name':"total observation impact",
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4' },
+            'ObsImpact_IC':
+            {'long_name':"observation impact due to initial conditions",
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4' },
+            'ObsImpact_BC':
+            {'long_name':"observation impact due to boundary conditions",
+            'fill_value': 1.e+37,
+            'mode': 'modfile',
+            'dtype' : 'f4' },
+            'ObsImpact_FC':
+            {'long_name':"observation impact due to forcing conditions",
             'fill_value': 1.e+37,
             'mode': 'modfile',
             'dtype' : 'f4' }
